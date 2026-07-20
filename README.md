@@ -1,4 +1,28 @@
-# ai-dev-template
+# AI App Incubator
+
+アプリアイデアを、公開可能なMVPの定義書へ整理する企画支援Webアプリです。
+
+## ローカル開発
+
+Node.js 20.9以降とnpmを使用します。
+
+```bash
+npm install
+npm run dev
+```
+
+品質チェックは次のコマンドで実行します。
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Gemini APIを利用する後続Issueでは、`.env.example`を参考にローカル環境変数を設定します。APIキーをリポジトリへコミットしないでください。
+
+## AI開発テンプレートについて
 
 AIエージェントを中心に、GitHub Issueでタスクを管理しながら個人開発を進めるためのテンプレートです。
 
