@@ -1,4 +1,30 @@
-# ai-dev-template
+# AI App Incubator
+
+アプリアイデアを、公開可能なMVPの定義書へ整理する企画支援Webアプリです。
+
+## ローカル開発
+
+Node.js 24系とnpmを使用します。
+
+Next.js 16自体の公式な最低要件はNode.js 20.9ですが、このプロジェクトでは開発環境と実行環境を現在のLTSへ統一するため、Node.js 24系を採用しています。
+
+```bash
+npm install
+npm run dev
+```
+
+品質チェックは次のコマンドで実行します。
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Gemini APIを利用する後続Issueでは、`.env.example`を参考にローカル環境変数を設定します。APIキーをリポジトリへコミットしないでください。
+
+## AI開発テンプレートについて
 
 AIエージェントを中心に、GitHub Issueでタスクを管理しながら個人開発を進めるためのテンプレートです。
 
