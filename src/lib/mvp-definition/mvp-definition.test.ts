@@ -175,6 +175,20 @@ describe("mvpDefinitionSchema", () => {
     });
   });
 
+  it("counts string limits by Unicode code point", () => {
+    const validDefinition: MvpDefinition = {
+      ...minimalDefinition,
+      overview: "😀".repeat(1_000),
+    };
+    const tooLongDefinition: MvpDefinition = {
+      ...minimalDefinition,
+      overview: "😀".repeat(MVP_DEFINITION_LIMITS.text + 1),
+    };
+
+    expect(parseMvpDefinition(validDefinition).success).toBe(true);
+    expect(parseMvpDefinition(tooLongDefinition).success).toBe(false);
+  });
+
   it("rejects missing, unknown, oversized, and invalid nested values", () => {
     const result = parseMvpDefinition({
       ...completeDefinition,
@@ -323,6 +337,20 @@ describe("toMvpDefinitionMarkdown", () => {
     expect(markdown).not.toContain(`\n${unexpectedHeading}`);
     expect(markdown).toContain(`概要 ${unexpectedHeading}`);
   });
+
+  it.each(["\n", "\r\n", "\r"])(
+    "normalizes the %j line ending in free text",
+    (lineEnding) => {
+      const unexpectedHeading = "## 意図しない見出し";
+      const markdown = toMvpDefinitionMarkdown({
+        ...minimalDefinition,
+        overview: `概要${lineEnding}${unexpectedHeading}`,
+      });
+
+      expect(markdown).not.toContain(`\n${unexpectedHeading}`);
+      expect(markdown).toContain(`概要 ${unexpectedHeading}`);
+    },
+  );
 
   it("does not mutate task order while rendering tasks by order", () => {
     const definition: MvpDefinition = {

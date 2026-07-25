@@ -3,7 +3,7 @@ import type { MvpDefinition } from "./types";
 const EMPTY_TEXT = "該当なし";
 
 function normalizeInline(value: string): string {
-  return value.replace(/\r?\n/g, " ").trim();
+  return value.replace(/\r\n|\r|\n/g, " ").trim();
 }
 
 function renderList(values: readonly string[]): string {

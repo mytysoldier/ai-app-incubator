@@ -39,6 +39,10 @@ function childPath(path: string, key: string): string {
   return path === "$" ? `$.${key}` : `${path}.${key}`;
 }
 
+function codePointLength(value: string): number {
+  return Array.from(value).length;
+}
+
 function validateValue(
   value: unknown,
   schema: RuntimeSchema,
@@ -125,13 +129,15 @@ function validateValue(
         errors.push({ path, message: "文字列である必要があります" });
         return;
       }
-      if (schema.minLength !== undefined && value.length < schema.minLength) {
+      const length = codePointLength(value);
+
+      if (schema.minLength !== undefined && length < schema.minLength) {
         errors.push({
           path,
           message: `${schema.minLength}文字以上である必要があります`,
         });
       }
-      if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+      if (schema.maxLength !== undefined && length > schema.maxLength) {
         errors.push({
           path,
           message: `${schema.maxLength}文字以下である必要があります`,
