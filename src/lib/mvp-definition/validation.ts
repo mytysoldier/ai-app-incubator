@@ -10,6 +10,7 @@ type RuntimeSchema = {
   items?: RuntimeSchema;
   minLength?: number;
   maxLength?: number;
+  pattern?: string;
   minItems?: number;
   maxItems?: number;
   minimum?: number;
@@ -131,11 +132,7 @@ function validateValue(
       }
       const length = codePointLength(value);
 
-      if (
-        schema.minLength !== undefined &&
-        schema.minLength > 0 &&
-        !value.trim()
-      ) {
+      if (schema.pattern && !new RegExp(schema.pattern, "u").test(value)) {
         errors.push({ path, message: "空白だけにはできません" });
       }
 

@@ -370,7 +370,7 @@ describe("toMvpDefinitionMarkdown", () => {
     const markdown = toMvpDefinitionMarkdown(definition);
 
     expect(markdown).not.toContain(`\n${unexpectedHeading}`);
-    expect(markdown).toContain(`概要 ${unexpectedHeading}`);
+    expect(markdown).toContain("概要 \\#\\# 意図しない見出し");
   });
 
   it.each(["\n", "\r\n", "\r"])(
@@ -383,9 +383,27 @@ describe("toMvpDefinitionMarkdown", () => {
       });
 
       expect(markdown).not.toContain(`\n${unexpectedHeading}`);
-      expect(markdown).toContain(`概要 ${unexpectedHeading}`);
+      expect(markdown).toContain("概要 \\#\\# 意図しない見出し");
     },
   );
+
+  it("escapes Markdown block syntax in free text", () => {
+    const markdown = toMvpDefinitionMarkdown({
+      ...minimalDefinition,
+      overview: "```",
+      mvpFeatures: [
+        {
+          name: "HTMLコメント",
+          description: "<!-- 非表示にしない -->",
+        },
+      ],
+    });
+
+    expect(markdown).toContain("\\`\\`\\`");
+    expect(markdown).not.toContain("\n```\n");
+    expect(markdown).not.toContain("<!--");
+    expect(markdown).toContain("&lt;\\!\\-\\-");
+  });
 
   it("does not mutate task order while rendering tasks by order", () => {
     const definition: MvpDefinition = {

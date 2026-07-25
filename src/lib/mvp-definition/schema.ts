@@ -19,12 +19,14 @@ const shortText = {
   type: "string",
   minLength: 1,
   maxLength: MVP_DEFINITION_LIMITS.shortText,
+  pattern: "\\S",
 } as const;
 
 const text = {
   type: "string",
   minLength: 1,
   maxLength: MVP_DEFINITION_LIMITS.text,
+  pattern: "\\S",
 } as const;
 
 const stringList = {
