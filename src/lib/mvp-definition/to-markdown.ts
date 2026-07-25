@@ -22,7 +22,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
   const sections = [
     `# MVP定義書`,
     `## アプリ名候補\n\n${renderList(definition.appNameCandidates)}`,
-    `## 企画概要\n\n${definition.overview}`,
+    `## 企画概要\n\n${normalizeInline(definition.overview)}`,
     `## 解決する課題\n\n${renderList(definition.problems)}`,
     `## 想定ユーザー\n\n${renderList(definition.targetUsers)}`,
     `## ユーザー価値\n\n${renderList(definition.userValues)}`,
@@ -33,7 +33,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
         : definition.mvpFeatures
             .map(
               (feature) =>
-                `### ${normalizeInline(feature.name)}\n\n${feature.description}`,
+                `### ${normalizeInline(feature.name)}\n\n${normalizeInline(feature.description)}`,
             )
             .join("\n\n")
     }`,
@@ -44,7 +44,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
         : definition.screens
             .map((screen) => {
               const details = [
-                screen.purpose,
+                normalizeInline(screen.purpose),
                 `- 入力項目: ${
                   screen.inputItems?.length
                     ? screen.inputItems.map(normalizeInline).join("、")
@@ -69,7 +69,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
                 `### ${normalizeInline(item.name)}\n\n` +
                 `- 区分: ${item.direction === "input" ? "入力" : "出力"}\n` +
                 `- 必須: ${renderBoolean(item.required)}\n` +
-                `- 内容: ${item.description}`,
+                `- 内容: ${normalizeInline(item.description)}`,
             )
             .join("\n\n")
     }`,
@@ -86,7 +86,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
                     )
                     .join("\n")
                 : EMPTY_TEXT;
-              return `### ${normalizeInline(model.name)}\n\n${model.description}\n\n#### フィールド\n\n${fields}`;
+              return `### ${normalizeInline(model.name)}\n\n${normalizeInline(model.description)}\n\n#### フィールド\n\n${fields}`;
             })
             .join("\n\n")
     }`,
@@ -98,7 +98,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
               (service) =>
                 `### ${normalizeInline(service.name)}\n\n` +
                 `- 必須: ${renderBoolean(service.required)}\n` +
-                `- 目的: ${service.purpose}`,
+                `- 目的: ${normalizeInline(service.purpose)}`,
             )
             .join("\n\n")
     }`,
@@ -108,7 +108,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
         : definition.techStack
             .map(
               (item) =>
-                `### ${normalizeInline(item.category)}: ${normalizeInline(item.choice)}\n\n${item.reason}`,
+                `### ${normalizeInline(item.category)}: ${normalizeInline(item.choice)}\n\n${normalizeInline(item.reason)}`,
             )
             .join("\n\n")
     }`,
@@ -120,9 +120,9 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
             .map(
               (item, index) =>
                 `### リスク${index + 1}\n\n` +
-                `- リスク: ${item.risk}\n` +
-                `- 影響: ${item.impact}\n` +
-                `- 軽減策: ${item.mitigation}`,
+                `- リスク: ${normalizeInline(item.risk)}\n` +
+                `- 影響: ${normalizeInline(item.impact)}\n` +
+                `- 軽減策: ${normalizeInline(item.mitigation)}`,
             )
             .join("\n\n")
     }`,
@@ -136,7 +136,7 @@ export function toMvpDefinitionMarkdown(definition: MvpDefinition): string {
             .map(
               (task) =>
                 `### ${task.order}. ${normalizeInline(task.title)}\n\n` +
-                `${task.description}\n\n` +
+                `${normalizeInline(task.description)}\n\n` +
                 `#### 完了条件\n\n${renderList(task.completionCriteria)}`,
             )
             .join("\n\n")

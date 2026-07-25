@@ -256,6 +256,74 @@ describe("toMvpDefinitionMarkdown", () => {
     expect(markdown).toContain("#### フィールド\n\n該当なし");
   });
 
+  it("normalizes free text so it cannot add Markdown headings", () => {
+    const unexpectedHeading = "## 意図しない見出し";
+    const definition: MvpDefinition = {
+      ...completeDefinition,
+      overview: `概要\n${unexpectedHeading}`,
+      mvpFeatures: [
+        {
+          name: "機能",
+          description: `機能説明\n${unexpectedHeading}`,
+        },
+      ],
+      screens: [
+        {
+          name: "/",
+          purpose: `画面目的\n${unexpectedHeading}`,
+        },
+      ],
+      inputOutputItems: [
+        {
+          name: "入力",
+          direction: "input",
+          required: true,
+          description: `項目説明\n${unexpectedHeading}`,
+        },
+      ],
+      dataModels: [
+        {
+          name: "モデル",
+          description: `モデル説明\n${unexpectedHeading}`,
+        },
+      ],
+      apisAndServices: [
+        {
+          name: "サービス",
+          purpose: `用途\n${unexpectedHeading}`,
+          required: true,
+        },
+      ],
+      techStack: [
+        {
+          category: "Frontend",
+          choice: "Next.js",
+          reason: `選定理由\n${unexpectedHeading}`,
+        },
+      ],
+      technicalRisks: [
+        {
+          risk: `リスク\n${unexpectedHeading}`,
+          impact: `影響\n${unexpectedHeading}`,
+          mitigation: `軽減策\n${unexpectedHeading}`,
+        },
+      ],
+      implementationTasks: [
+        {
+          order: 1,
+          title: "タスク",
+          description: `タスク説明\n${unexpectedHeading}`,
+          completionCriteria: [],
+        },
+      ],
+    };
+
+    const markdown = toMvpDefinitionMarkdown(definition);
+
+    expect(markdown).not.toContain(`\n${unexpectedHeading}`);
+    expect(markdown).toContain(`概要 ${unexpectedHeading}`);
+  });
+
   it("does not mutate task order while rendering tasks by order", () => {
     const definition: MvpDefinition = {
       ...minimalDefinition,
