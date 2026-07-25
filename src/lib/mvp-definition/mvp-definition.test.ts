@@ -390,7 +390,7 @@ describe("toMvpDefinitionMarkdown", () => {
   it("escapes Markdown block syntax in free text", () => {
     const markdown = toMvpDefinitionMarkdown({
       ...minimalDefinition,
-      overview: "```",
+      overview: "```\n~~~",
       mvpFeatures: [
         {
           name: "HTMLコメント",
@@ -400,7 +400,9 @@ describe("toMvpDefinitionMarkdown", () => {
     });
 
     expect(markdown).toContain("\\`\\`\\`");
+    expect(markdown).toContain("\\~\\~\\~");
     expect(markdown).not.toContain("\n```\n");
+    expect(markdown).not.toContain("\n~~~\n");
     expect(markdown).not.toContain("<!--");
     expect(markdown).toContain("&lt;\\!\\-\\-");
   });

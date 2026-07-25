@@ -9,7 +9,7 @@ function normalizeInline(value: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/[\\`*_{}\[\]()#+.!|\-]/g, "\\$&");
+    .replace(/[\\`*_{}\[\]()#+.!|~\-]/g, "\\$&");
 }
 
 function renderList(values: readonly string[]): string {
