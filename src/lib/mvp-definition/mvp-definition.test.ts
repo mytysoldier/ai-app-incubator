@@ -189,6 +189,41 @@ describe("mvpDefinitionSchema", () => {
     expect(parseMvpDefinition(tooLongDefinition).success).toBe(false);
   });
 
+  it("rejects whitespace-only text while accepting surrounding whitespace", () => {
+    const invalidDefinition = {
+      ...completeDefinition,
+      overview: "　",
+      problems: ["\t\n"],
+      mvpFeatures: [
+        {
+          name: " ",
+          description: "\r\n",
+        },
+      ],
+    };
+    const result = parseMvpDefinition(invalidDefinition);
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Whitespace-only definition unexpectedly passed validation");
+    }
+
+    expect(result.errors.map((error) => error.path)).toEqual(
+      expect.arrayContaining([
+        "$.overview",
+        "$.problems[0]",
+        "$.mvpFeatures[0].name",
+        "$.mvpFeatures[0].description",
+      ]),
+    );
+    expect(
+      parseMvpDefinition({
+        ...minimalDefinition,
+        overview: " 前後の空白は許可する ",
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects missing, unknown, oversized, and invalid nested values", () => {
     const result = parseMvpDefinition({
       ...completeDefinition,

@@ -131,6 +131,14 @@ function validateValue(
       }
       const length = codePointLength(value);
 
+      if (
+        schema.minLength !== undefined &&
+        schema.minLength > 0 &&
+        !value.trim()
+      ) {
+        errors.push({ path, message: "空白だけにはできません" });
+      }
+
       if (schema.minLength !== undefined && length < schema.minLength) {
         errors.push({
           path,
