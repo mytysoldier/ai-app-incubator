@@ -50,6 +50,12 @@ export const GEMINI_FLASH_LITE_PRICING = {
   checkedOn: "2026-07-25",
 } as const;
 
+const GEMINI_FLASH_LITE_COST_YEN_UNITS = {
+  inputToken: 1,
+  outputTokenIncludingThinking: 6,
+  perYen: 25_000,
+} as const;
+
 export type GeminiTokenUsage = {
   inputTokens: number;
   /** Gemini pricing includes thinking tokens in output tokens. */
@@ -110,12 +116,19 @@ function hasSequentialTasks(definition: MvpDefinition): boolean {
 
 function hasValidGeminiTokenUsage(usage: GeminiTokenUsage): boolean {
   return (
-    Number.isFinite(usage.inputTokens) &&
-    Number.isInteger(usage.inputTokens) &&
+    Number.isSafeInteger(usage.inputTokens) &&
     usage.inputTokens >= 0 &&
-    Number.isFinite(usage.outputTokensIncludingThinking) &&
-    Number.isInteger(usage.outputTokensIncludingThinking) &&
-    usage.outputTokensIncludingThinking >= 0
+    Number.isSafeInteger(usage.outputTokensIncludingThinking) &&
+    usage.outputTokensIncludingThinking >= 0 &&
+    Number.isSafeInteger(getGeminiCostYenUnits(usage))
+  );
+}
+
+function getGeminiCostYenUnits(usage: GeminiTokenUsage): number {
+  return (
+    usage.inputTokens * GEMINI_FLASH_LITE_COST_YEN_UNITS.inputToken +
+    usage.outputTokensIncludingThinking *
+      GEMINI_FLASH_LITE_COST_YEN_UNITS.outputTokenIncludingThinking
   );
 }
 
@@ -184,9 +197,13 @@ export function evaluateMvpDefinitionBatch(
       : null,
   }));
   const sampleCount = results.length;
-  const hasValidTokenUsage = results.every(
-    (result) => result.estimatedCostYen !== null,
+  const totalCostYenUnits = samples.reduce(
+    (total, sample) => total + getGeminiCostYenUnits(sample.usage),
+    0,
   );
+  const hasValidTokenUsage =
+    results.every((result) => result.estimatedCostYen !== null) &&
+    Number.isSafeInteger(totalCostYenUnits);
   const averageEstimatedCostYen =
     sampleCount === 0 || !hasValidTokenUsage
       ? null
@@ -198,7 +215,8 @@ export function evaluateMvpDefinitionBatch(
   const hasUniqueSampleIds = new Set(results.map((result) => result.id)).size === sampleCount;
   const passingSampleCount = results.filter((result) => result.evaluation.passed).length;
   const isAverageCostUnderOneYen =
-    averageEstimatedCostYen !== null && averageEstimatedCostYen < 1;
+    averageEstimatedCostYen !== null &&
+    totalCostYenUnits < GEMINI_FLASH_LITE_COST_YEN_UNITS.perYen * sampleCount;
 
   return {
     sampleCount,

@@ -134,4 +134,35 @@ describe("Gemini MVP definition prompt", () => {
     });
     expect(result.results.every((item) => item.estimatedCostYen === null)).toBe(true);
   });
+
+  it("rejects an exact one-yen average even when floating-point estimation is imprecise", () => {
+    const result = evaluateMvpDefinitionBatch(
+      representativePromptCases.map((testCase) => ({
+        id: testCase.id,
+        value: completeDefinition,
+        usage: { inputTokens: 24_994, outputTokensIncludingThinking: 1 },
+      })),
+    );
+
+    expect(result.averageEstimatedCostYen).toBeCloseTo(1);
+    expect(result).toMatchObject({
+      isAverageCostUnderOneYen: false,
+      passed: false,
+    });
+  });
+
+  it("accepts an average strictly below one yen", () => {
+    const result = evaluateMvpDefinitionBatch(
+      representativePromptCases.map((testCase) => ({
+        id: testCase.id,
+        value: completeDefinition,
+        usage: { inputTokens: 24_993, outputTokensIncludingThinking: 1 },
+      })),
+    );
+
+    expect(result).toMatchObject({
+      isAverageCostUnderOneYen: true,
+      passed: true,
+    });
+  });
 });
