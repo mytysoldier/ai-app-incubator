@@ -50,6 +50,12 @@ export const GEMINI_FLASH_LITE_PRICING = {
   checkedOn: "2026-07-25",
 } as const;
 
+const GEMINI_FLASH_LITE_COST_YEN_UNITS = {
+  inputToken: 1,
+  outputTokenIncludingThinking: 6,
+  perYen: 25_000,
+} as const;
+
 export type GeminiTokenUsage = {
   inputTokens: number;
   /** Gemini pricing includes thinking tokens in output tokens. */
@@ -80,9 +86,49 @@ export type MvpDefinitionEvaluation = {
   passed: boolean;
 };
 
+export type MvpDefinitionEvaluationSample = {
+  id: string;
+  value: unknown;
+  usage: GeminiTokenUsage;
+};
+
+export type MvpDefinitionBatchEvaluation = {
+  sampleCount: number;
+  hasAtLeastTenSamples: boolean;
+  hasUniqueSampleIds: boolean;
+  hasValidTokenUsage: boolean;
+  passingSampleCount: number;
+  averageEstimatedCostYen: number | null;
+  isAverageCostUnderOneYen: boolean;
+  results: Array<{
+    id: string;
+    evaluation: MvpDefinitionEvaluation;
+    estimatedCostYen: number | null;
+  }>;
+  passed: boolean;
+};
+
 function hasSequentialTasks(definition: MvpDefinition): boolean {
   return definition.implementationTasks.every(
     (task, index) => task.order === index + 1 && task.completionCriteria.length > 0,
+  );
+}
+
+function hasValidGeminiTokenUsage(usage: GeminiTokenUsage): boolean {
+  return (
+    Number.isSafeInteger(usage.inputTokens) &&
+    usage.inputTokens >= 0 &&
+    Number.isSafeInteger(usage.outputTokensIncludingThinking) &&
+    usage.outputTokensIncludingThinking >= 0 &&
+    Number.isSafeInteger(getGeminiCostYenUnits(usage))
+  );
+}
+
+function getGeminiCostYenUnits(usage: GeminiTokenUsage): number {
+  return (
+    usage.inputTokens * GEMINI_FLASH_LITE_COST_YEN_UNITS.inputToken +
+    usage.outputTokensIncludingThinking *
+      GEMINI_FLASH_LITE_COST_YEN_UNITS.outputTokenIncludingThinking
   );
 }
 
@@ -132,5 +178,60 @@ export function evaluateMvpDefinition(value: unknown): MvpDefinitionEvaluation {
     schemaValid: true,
     checks,
     passed: checks.every((check) => check.passed),
+  };
+}
+
+/**
+ * Evaluates recorded outputs for representative prompts without making an API call.
+ * The caller supplies the model output and its measured token usage from AI Studio or
+ * a later API integration, so this module never needs an API key.
+ */
+export function evaluateMvpDefinitionBatch(
+  samples: ReadonlyArray<MvpDefinitionEvaluationSample>,
+): MvpDefinitionBatchEvaluation {
+  const results = samples.map((sample) => ({
+    id: sample.id,
+    evaluation: evaluateMvpDefinition(sample.value),
+    estimatedCostYen: hasValidGeminiTokenUsage(sample.usage)
+      ? estimateGeminiGenerationCostYen(sample.usage)
+      : null,
+  }));
+  const sampleCount = results.length;
+  const totalCostYenUnits = samples.reduce(
+    (total, sample) => total + getGeminiCostYenUnits(sample.usage),
+    0,
+  );
+  const hasValidTokenUsage =
+    results.every((result) => result.estimatedCostYen !== null) &&
+    Number.isSafeInteger(totalCostYenUnits);
+  const averageEstimatedCostYen =
+    sampleCount === 0 || !hasValidTokenUsage
+      ? null
+      : results.reduce(
+          (total, result) => total + (result.estimatedCostYen ?? 0),
+          0,
+        ) / sampleCount;
+  const hasAtLeastTenSamples = sampleCount >= 10;
+  const hasUniqueSampleIds = new Set(results.map((result) => result.id)).size === sampleCount;
+  const passingSampleCount = results.filter((result) => result.evaluation.passed).length;
+  const isAverageCostUnderOneYen =
+    averageEstimatedCostYen !== null &&
+    totalCostYenUnits < GEMINI_FLASH_LITE_COST_YEN_UNITS.perYen * sampleCount;
+
+  return {
+    sampleCount,
+    hasAtLeastTenSamples,
+    hasUniqueSampleIds,
+    hasValidTokenUsage,
+    passingSampleCount,
+    averageEstimatedCostYen,
+    isAverageCostUnderOneYen,
+    results,
+    passed:
+      hasAtLeastTenSamples &&
+      hasUniqueSampleIds &&
+      hasValidTokenUsage &&
+      passingSampleCount === sampleCount &&
+      isAverageCostUnderOneYen,
   };
 }
