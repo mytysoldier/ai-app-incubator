@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { completeDefinition } from "../mvp-definition/test-fixtures";
 import {
   createMvpDefinitionUserPrompt,
+  evaluateMvpDefinitionBatch,
   estimateGeminiGenerationCostYen,
   evaluateMvpDefinition,
   GEMINI_PROMPT_CONFIG,
@@ -68,5 +69,49 @@ describe("Gemini MVP definition prompt", () => {
     expect(result.schemaValid).toBe(true);
     expect(result.passed).toBe(false);
     expect(result.checks.filter((check) => !check.passed)).toHaveLength(4);
+  });
+
+  it("aggregates ten representative outputs and keeps their average estimated cost under one yen", () => {
+    const result = evaluateMvpDefinitionBatch(
+      representativePromptCases.map((testCase) => ({
+        id: testCase.id,
+        value: completeDefinition,
+        usage: {
+          inputTokens: GEMINI_PROMPT_CONFIG.maxInputTokensTarget,
+          outputTokensIncludingThinking: GEMINI_PROMPT_CONFIG.maxOutputTokens,
+        },
+      })),
+    );
+
+    expect(result).toMatchObject({
+      sampleCount: 10,
+      hasAtLeastTenSamples: true,
+      hasUniqueSampleIds: true,
+      passingSampleCount: 10,
+      isAverageCostUnderOneYen: true,
+      passed: true,
+    });
+    expect(result.averageEstimatedCostYen).toBeCloseTo(0.96);
+  });
+
+  it("fails the batch gate when a sample id is duplicated or fewer than ten outputs are supplied", () => {
+    const result = evaluateMvpDefinitionBatch([
+      {
+        id: "duplicate",
+        value: completeDefinition,
+        usage: { inputTokens: 1, outputTokensIncludingThinking: 1 },
+      },
+      {
+        id: "duplicate",
+        value: completeDefinition,
+        usage: { inputTokens: 1, outputTokensIncludingThinking: 1 },
+      },
+    ]);
+
+    expect(result).toMatchObject({
+      hasAtLeastTenSamples: false,
+      hasUniqueSampleIds: false,
+      passed: false,
+    });
   });
 });

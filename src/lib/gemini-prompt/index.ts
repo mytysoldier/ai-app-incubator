@@ -80,6 +80,27 @@ export type MvpDefinitionEvaluation = {
   passed: boolean;
 };
 
+export type MvpDefinitionEvaluationSample = {
+  id: string;
+  value: unknown;
+  usage: GeminiTokenUsage;
+};
+
+export type MvpDefinitionBatchEvaluation = {
+  sampleCount: number;
+  hasAtLeastTenSamples: boolean;
+  hasUniqueSampleIds: boolean;
+  passingSampleCount: number;
+  averageEstimatedCostYen: number | null;
+  isAverageCostUnderOneYen: boolean;
+  results: Array<{
+    id: string;
+    evaluation: MvpDefinitionEvaluation;
+    estimatedCostYen: number;
+  }>;
+  passed: boolean;
+};
+
 function hasSequentialTasks(definition: MvpDefinition): boolean {
   return definition.implementationTasks.every(
     (task, index) => task.order === index + 1 && task.completionCriteria.length > 0,
@@ -132,5 +153,46 @@ export function evaluateMvpDefinition(value: unknown): MvpDefinitionEvaluation {
     schemaValid: true,
     checks,
     passed: checks.every((check) => check.passed),
+  };
+}
+
+/**
+ * Evaluates recorded outputs for representative prompts without making an API call.
+ * The caller supplies the model output and its measured token usage from AI Studio or
+ * a later API integration, so this module never needs an API key.
+ */
+export function evaluateMvpDefinitionBatch(
+  samples: ReadonlyArray<MvpDefinitionEvaluationSample>,
+): MvpDefinitionBatchEvaluation {
+  const results = samples.map((sample) => ({
+    id: sample.id,
+    evaluation: evaluateMvpDefinition(sample.value),
+    estimatedCostYen: estimateGeminiGenerationCostYen(sample.usage),
+  }));
+  const sampleCount = results.length;
+  const averageEstimatedCostYen =
+    sampleCount === 0
+      ? null
+      : results.reduce((total, result) => total + result.estimatedCostYen, 0) /
+        sampleCount;
+  const hasAtLeastTenSamples = sampleCount >= 10;
+  const hasUniqueSampleIds = new Set(results.map((result) => result.id)).size === sampleCount;
+  const passingSampleCount = results.filter((result) => result.evaluation.passed).length;
+  const isAverageCostUnderOneYen =
+    averageEstimatedCostYen !== null && averageEstimatedCostYen < 1;
+
+  return {
+    sampleCount,
+    hasAtLeastTenSamples,
+    hasUniqueSampleIds,
+    passingSampleCount,
+    averageEstimatedCostYen,
+    isAverageCostUnderOneYen,
+    results,
+    passed:
+      hasAtLeastTenSamples &&
+      hasUniqueSampleIds &&
+      passingSampleCount === sampleCount &&
+      isAverageCostUnderOneYen,
   };
 }

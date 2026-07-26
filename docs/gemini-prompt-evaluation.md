@@ -30,6 +30,8 @@ System Instructionとユーザープロンプトの組み立ては `src/lib/gemi
 4. 各JSONを `evaluateMvpDefinition` で評価し、失敗した基準と重複・過剰機能・曖昧な表現を記録する。
 5. 不足があればSystem Instructionを優先して直し、同じ10件を再評価する。
 
+10件分の出力JSONとAI StudioまたはAPIの利用量を記録できたら、`evaluateMvpDefinitionBatch` へ渡す。これにより、10件以上・ID重複なし・全件の品質ゲート合格・平均推定料金1円未満を一度に判定できる。この関数は外部APIを呼ばず、出力と利用量を評価するだけである。
+
 ## 料金評価
 
 料金は `estimateGeminiGenerationCostYen` で算出する。2026-07-25に確認したGemini Developer APIのStandard料金は、入力 $0.25 / 100万トークン、出力（thinking込み） $1.50 / 100万トークンとしている。換算は保守的に 1 USD = 160円で固定した。料金は変更され得るため、実運用前に [Gemini API料金表](https://ai.google.dev/gemini-api/docs/pricing) を再確認する。
