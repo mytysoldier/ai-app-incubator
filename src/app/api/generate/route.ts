@@ -2,6 +2,10 @@ import {
   GenerationError,
   generateMvpDefinition,
 } from "@/lib/generate/gemini-generation";
+import {
+  RequestBodyTooLargeError,
+  readBodyWithinLimit,
+} from "@/lib/generate/request-body";
 import { validateGenerateRequest } from "@/lib/generate/request-validation";
 
 export const runtime = "nodejs";
@@ -54,12 +58,13 @@ export async function POST(request: Request): Promise<Response> {
 
   let rawBody: string;
   try {
-    rawBody = await request.text();
-  } catch {
+    rawBody = await readBodyWithinLimit(request.body, REQUEST_MAX_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return errorResponse(400, "invalid_request", "リクエスト本文が大きすぎます。");
+    }
+
     return errorResponse(400, "invalid_request", "リクエスト本文を読み取れませんでした。");
-  }
-  if (new TextEncoder().encode(rawBody).byteLength > REQUEST_MAX_BYTES) {
-    return errorResponse(400, "invalid_request", "リクエスト本文が大きすぎます。");
   }
 
   let requestBody: unknown;

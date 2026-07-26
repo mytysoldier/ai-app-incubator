@@ -113,4 +113,13 @@ describe("POST /api/generate", () => {
       },
     });
   });
+
+  it("does not retry a request that reached its timeout", async () => {
+    mocks.generateContent.mockRejectedValue(new DOMException("", "AbortError"));
+
+    const response = await POST(createRequest(validRequestBody));
+
+    expect(response.status).toBe(504);
+    expect(mocks.generateContent).toHaveBeenCalledTimes(1);
+  });
 });

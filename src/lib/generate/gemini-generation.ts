@@ -48,7 +48,7 @@ function isAbortError(error: unknown): boolean {
 
 function isRetryableError(error: unknown): boolean {
   const status = getStatusCode(error);
-  return isAbortError(error) || status === 429 || (status !== undefined && status >= 500);
+  return status === 429 || (status !== undefined && status >= 500);
 }
 
 function toGenerationError(error: unknown): GenerationError {
