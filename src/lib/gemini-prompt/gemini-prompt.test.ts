@@ -87,6 +87,7 @@ describe("Gemini MVP definition prompt", () => {
       sampleCount: 10,
       hasAtLeastTenSamples: true,
       hasUniqueSampleIds: true,
+      hasValidTokenUsage: true,
       passingSampleCount: 10,
       isAverageCostUnderOneYen: true,
       passed: true,
@@ -113,5 +114,24 @@ describe("Gemini MVP definition prompt", () => {
       hasUniqueSampleIds: false,
       passed: false,
     });
+  });
+
+  it("rejects negative, fractional, and non-finite token usage", () => {
+    const invalidTokenCounts = [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY];
+    const result = evaluateMvpDefinitionBatch(
+      invalidTokenCounts.map((inputTokens, index) => ({
+        id: `invalid-usage-${index}`,
+        value: completeDefinition,
+        usage: { inputTokens, outputTokensIncludingThinking: 1 },
+      })),
+    );
+
+    expect(result).toMatchObject({
+      hasValidTokenUsage: false,
+      averageEstimatedCostYen: null,
+      isAverageCostUnderOneYen: false,
+      passed: false,
+    });
+    expect(result.results.every((item) => item.estimatedCostYen === null)).toBe(true);
   });
 });

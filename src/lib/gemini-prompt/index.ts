@@ -90,13 +90,14 @@ export type MvpDefinitionBatchEvaluation = {
   sampleCount: number;
   hasAtLeastTenSamples: boolean;
   hasUniqueSampleIds: boolean;
+  hasValidTokenUsage: boolean;
   passingSampleCount: number;
   averageEstimatedCostYen: number | null;
   isAverageCostUnderOneYen: boolean;
   results: Array<{
     id: string;
     evaluation: MvpDefinitionEvaluation;
-    estimatedCostYen: number;
+    estimatedCostYen: number | null;
   }>;
   passed: boolean;
 };
@@ -104,6 +105,17 @@ export type MvpDefinitionBatchEvaluation = {
 function hasSequentialTasks(definition: MvpDefinition): boolean {
   return definition.implementationTasks.every(
     (task, index) => task.order === index + 1 && task.completionCriteria.length > 0,
+  );
+}
+
+function hasValidGeminiTokenUsage(usage: GeminiTokenUsage): boolean {
+  return (
+    Number.isFinite(usage.inputTokens) &&
+    Number.isInteger(usage.inputTokens) &&
+    usage.inputTokens >= 0 &&
+    Number.isFinite(usage.outputTokensIncludingThinking) &&
+    Number.isInteger(usage.outputTokensIncludingThinking) &&
+    usage.outputTokensIncludingThinking >= 0
   );
 }
 
@@ -167,14 +179,21 @@ export function evaluateMvpDefinitionBatch(
   const results = samples.map((sample) => ({
     id: sample.id,
     evaluation: evaluateMvpDefinition(sample.value),
-    estimatedCostYen: estimateGeminiGenerationCostYen(sample.usage),
+    estimatedCostYen: hasValidGeminiTokenUsage(sample.usage)
+      ? estimateGeminiGenerationCostYen(sample.usage)
+      : null,
   }));
   const sampleCount = results.length;
+  const hasValidTokenUsage = results.every(
+    (result) => result.estimatedCostYen !== null,
+  );
   const averageEstimatedCostYen =
-    sampleCount === 0
+    sampleCount === 0 || !hasValidTokenUsage
       ? null
-      : results.reduce((total, result) => total + result.estimatedCostYen, 0) /
-        sampleCount;
+      : results.reduce(
+          (total, result) => total + (result.estimatedCostYen ?? 0),
+          0,
+        ) / sampleCount;
   const hasAtLeastTenSamples = sampleCount >= 10;
   const hasUniqueSampleIds = new Set(results.map((result) => result.id)).size === sampleCount;
   const passingSampleCount = results.filter((result) => result.evaluation.passed).length;
@@ -185,6 +204,7 @@ export function evaluateMvpDefinitionBatch(
     sampleCount,
     hasAtLeastTenSamples,
     hasUniqueSampleIds,
+    hasValidTokenUsage,
     passingSampleCount,
     averageEstimatedCostYen,
     isAverageCostUnderOneYen,
@@ -192,6 +212,7 @@ export function evaluateMvpDefinitionBatch(
     passed:
       hasAtLeastTenSamples &&
       hasUniqueSampleIds &&
+      hasValidTokenUsage &&
       passingSampleCount === sampleCount &&
       isAverageCostUnderOneYen,
   };
