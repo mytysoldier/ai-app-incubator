@@ -10,24 +10,28 @@ type FormErrors = {
   constraints?: string;
 };
 
+function getCharacterCount(value: string): number {
+  return Array.from(value).length;
+}
+
 function validateIdea(value: string): string | undefined {
   const trimmedValue = value.trim();
 
-  if (trimmedValue.length === 0) {
+  if (getCharacterCount(trimmedValue) === 0) {
     return "アプリアイデアを入力してください。";
   }
 
-  if (trimmedValue.length < IDEA_MIN_LENGTH) {
+  if (getCharacterCount(trimmedValue) < IDEA_MIN_LENGTH) {
     return `アプリアイデアは${IDEA_MIN_LENGTH}文字以上で入力してください。`;
   }
 
-  if (value.length > FIELD_MAX_LENGTH) {
+  if (getCharacterCount(value) > FIELD_MAX_LENGTH) {
     return `アプリアイデアは${FIELD_MAX_LENGTH}文字以内で入力してください。`;
   }
 }
 
 function validateConstraints(value: string): string | undefined {
-  if (value.length > FIELD_MAX_LENGTH) {
+  if (getCharacterCount(value) > FIELD_MAX_LENGTH) {
     return `制約・希望条件は${FIELD_MAX_LENGTH}文字以内で入力してください。`;
   }
 }
@@ -37,6 +41,8 @@ export default function Home() {
   const [constraints, setConstraints] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const ideaCharacterCount = getCharacterCount(idea);
+  const constraintsCharacterCount = getCharacterCount(constraints);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,8 +119,6 @@ export default function Home() {
               aria-describedby={errors.idea ? "idea-hint idea-error" : "idea-hint"}
               aria-invalid={Boolean(errors.idea)}
               id="idea"
-              maxLength={FIELD_MAX_LENGTH}
-              minLength={IDEA_MIN_LENGTH}
               name="idea"
               onChange={(event) => handleIdeaChange(event.target.value)}
               placeholder="例：忙しい個人開発者が、週末だけで公開できるアプリ案を整理できるサービス"
@@ -131,7 +135,7 @@ export default function Home() {
                 <span />
               )}
               <p className="character-count" aria-live="polite">
-                {idea.length} / {FIELD_MAX_LENGTH}文字
+                {ideaCharacterCount} / {FIELD_MAX_LENGTH}文字
               </p>
             </div>
           </div>
@@ -152,7 +156,6 @@ export default function Home() {
               }
               aria-invalid={Boolean(errors.constraints)}
               id="constraints"
-              maxLength={FIELD_MAX_LENGTH}
               name="constraints"
               onChange={(event) => handleConstraintsChange(event.target.value)}
               placeholder="例：Next.jsで作りたい。1週間で公開できる範囲にしたい。"
@@ -168,7 +171,7 @@ export default function Home() {
                 <span />
               )}
               <p className="character-count" aria-live="polite">
-                {constraints.length} / {FIELD_MAX_LENGTH}文字
+                {constraintsCharacterCount} / {FIELD_MAX_LENGTH}文字
               </p>
             </div>
           </div>

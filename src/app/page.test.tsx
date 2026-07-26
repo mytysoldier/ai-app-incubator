@@ -49,6 +49,40 @@ describe("Home", () => {
     expect(screen.getByText("8 / 2000文字")).toBeDefined();
   });
 
+  it("counts emoji by Unicode code point for validation and character counts", () => {
+    render(<Home />);
+
+    const idea = screen.getByLabelText("アプリアイデア");
+    fireEvent.change(idea, { target: { value: "😀".repeat(19) } });
+    fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      "アプリアイデアは20文字以上で入力してください。",
+    );
+    expect(screen.getByText("19 / 2000文字")).toBeDefined();
+
+    fireEvent.change(idea, { target: { value: "😀".repeat(20) } });
+    expect(screen.getByText("20 / 2000文字")).toBeDefined();
+    expect(idea.getAttribute("maxlength")).toBeNull();
+  });
+
+  it("rejects more than 2,000 emoji in the optional constraints", () => {
+    render(<Home />);
+
+    fireEvent.change(screen.getByLabelText("アプリアイデア"), {
+      target: { value: "忙しい個人開発者が週末でアプリ案を整理できるサービス" },
+    });
+    fireEvent.change(screen.getByLabelText("制約・希望条件"), {
+      target: { value: "😀".repeat(2001) },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      "制約・希望条件は2000文字以内で入力してください。",
+    );
+    expect(screen.getByText("2001 / 2000文字")).toBeDefined();
+  });
+
   it("disables the button while a valid request is being prepared", () => {
     render(<Home />);
 
