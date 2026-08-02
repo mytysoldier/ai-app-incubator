@@ -18,10 +18,14 @@ const validRequestBody = {
   constraints: "ログイン機能は追加しない。",
 };
 
-function createRequest(body: unknown, contentType = "application/json"): Request {
+function createRequest(
+  body: unknown,
+  contentType = "application/json",
+  origin = "http://localhost",
+): Request {
   return new Request("http://localhost/api/generate", {
     method: "POST",
-    headers: { "content-type": contentType },
+    headers: { "content-type": contentType, origin },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -36,7 +40,14 @@ describe("POST /api/generate", () => {
   });
 
   it("sends only validated input to Gemini and returns a schema-valid definition", async () => {
-    mocks.generateContent.mockResolvedValue({ text: JSON.stringify(completeDefinition) });
+    mocks.generateContent.mockResolvedValue({
+      text: JSON.stringify(completeDefinition),
+      usageMetadata: {
+        promptTokenCount: 1_000,
+        candidatesTokenCount: 500,
+        thoughtsTokenCount: 200,
+      },
+    });
 
     const response = await POST(createRequest(validRequestBody));
 
@@ -54,6 +65,16 @@ describe("POST /api/generate", () => {
         }),
       }),
     );
+  });
+
+  it("rejects requests from an untrusted origin before calling Gemini", async () => {
+    const response = await POST(createRequest(validRequestBody, "application/json", "https://evil.example"));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "invalid_origin", message: expect.any(String) },
+    });
+    expect(mocks.generateContent).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -112,6 +133,24 @@ describe("POST /api/generate", () => {
         message: expect.any(String),
       },
     });
+  });
+
+  it("logs usage without logging the request or generated definition", async () => {
+    const logSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    mocks.generateContent.mockResolvedValue({
+      text: JSON.stringify(completeDefinition),
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 50, thoughtsTokenCount: 10 },
+    });
+
+    await POST(createRequest(validRequestBody));
+
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"estimatedCostUsd":'),
+    );
+    const log = logSpy.mock.calls[0]?.[0] ?? "";
+    expect(log).not.toContain(validRequestBody.idea);
+    expect(log).not.toContain(completeDefinition.appNameCandidates[0]);
+    logSpy.mockRestore();
   });
 
   it("does not retry a request that reached its timeout", async () => {
