@@ -52,7 +52,7 @@ Production URL と Preview URL の両方で、次を確認します。
 - 320px幅とキーボード操作で、入力・生成・コピーができる。
 - Bot Protection が Challenge Mode で、Geminiの月次上限と通知しきい値が設定済みである。
 
-公開直後は少なくとも毎日、Vercel の Firewall/Usage と Gemini の Usage を確認します。費用や異常トラフィックが想定を超えた場合は、まずデプロイを停止または環境変数を削除して生成を止め、原因を確認します。
+公開直後は少なくとも毎日、Vercel の Firewall/Usage と Gemini の Usage を確認します。費用や異常トラフィックが想定を超えた場合は、まず Gemini APIキーをGoogle AI Studioで無効化または削除して生成を止めます。Vercelの `GEMINI_API_KEY` を削除する場合は、続けてProductionを再デプロイし、`/api/generate` が設定不足のエラーを返すことを確認します。環境変数の削除だけでは、すでに稼働中のデプロイにあるキーは無効になりません。停止後に原因を確認します。
 
 ## 参照
 
