@@ -287,8 +287,8 @@ export function MvpDefinitionResult({
             <div className="result-cards">
               {[...definition.implementationTasks]
                 .sort((left, right) => left.order - right.order)
-                .map((task) => (
-                  <article className="result-card" key={task.order}>
+                .map((task, index) => (
+                  <article className="result-card" key={`${task.order}-${index}`}>
                     <h4>{task.order}. {task.title}</h4>
                     <p>{task.description}</p>
                     <h5>完了条件</h5>

@@ -87,6 +87,26 @@ describe("MvpDefinitionResult", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
+  it("renders tasks with duplicate order values without duplicate React keys", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(
+      <MvpDefinitionResult
+        definition={{
+          ...completeDefinition,
+          implementationTasks: [
+            { order: 1, title: "最初のタスク", description: "最初の説明。", completionCriteria: [] },
+            { order: 1, title: "次のタスク", description: "次の説明。", completionCriteria: [] },
+          ],
+        }}
+        onRegenerate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "1. 最初のタスク" })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "1. 次のタスク" })).toBeDefined();
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
   it("calls the supplied regenerate handler", () => {
     const onRegenerate = vi.fn();
     render(<MvpDefinitionResult definition={completeDefinition} onRegenerate={onRegenerate} />);
