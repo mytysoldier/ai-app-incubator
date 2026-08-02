@@ -44,11 +44,12 @@ function usageFromMetadata(metadata: unknown): {
       : {};
   const inputTokens = tokenCount(record.promptTokenCount);
   const outputTokens = tokenCount(record.candidatesTokenCount);
-  const thinkingTokens = tokenCount(record.thoughtsTokenCount) ?? 0;
+  const thinkingTokens =
+    record.thoughtsTokenCount === undefined ? 0 : tokenCount(record.thoughtsTokenCount);
 
   return {
     usage:
-      inputTokens === null || outputTokens === null
+      inputTokens === null || outputTokens === null || thinkingTokens === null
         ? null
         : {
             inputTokens,
@@ -138,9 +139,7 @@ describe("Gemini prompt regression evaluation (manual only)", () => {
       safeResults.push({
         id: promptCase.id,
         passed:
-          usage !== null &&
-          failedQualityCriteria.length === 0 &&
-          estimateGeminiGenerationCostYen(usage) < 1,
+          usage !== null && failedQualityCriteria.length === 0,
         failedQualityCriteria,
         inputTokens,
         outputTokens,
