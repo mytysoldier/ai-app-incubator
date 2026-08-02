@@ -22,7 +22,10 @@ export type GenerationErrorCode =
   | "upstream_error";
 
 export class GenerationError extends Error {
-  constructor(readonly code: GenerationErrorCode) {
+  constructor(
+    readonly code: GenerationErrorCode,
+    readonly usage?: GenerationUsage,
+  ) {
     super(code);
   }
 }
@@ -120,7 +123,7 @@ export async function generateMvpDefinition(
   const parsedDefinition = parseMvpDefinitionJson(response.text);
 
   if (!parsedDefinition.success) {
-    throw new GenerationError("invalid_model_response");
+    throw new GenerationError("invalid_model_response", response.usage);
   }
 
   return { definition: parsedDefinition.data, usage: response.usage };

@@ -145,10 +145,14 @@ export async function POST(request: Request): Promise<Response> {
       success: false,
       status: response.status,
       durationMs: Math.round(performance.now() - startedAt),
-      inputTokens: null,
-      outputTokens: null,
-      thinkingTokens: null,
-      estimatedCostUsd: null,
+      ...(error instanceof GenerationError && error.usage
+        ? error.usage
+        : {
+            inputTokens: null,
+            outputTokens: null,
+            thinkingTokens: null,
+            estimatedCostUsd: null,
+          }),
     });
     if (error instanceof GenerationError) {
       return response;

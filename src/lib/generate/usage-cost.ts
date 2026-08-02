@@ -1,5 +1,4 @@
-const INPUT_PRICE_PER_MILLION_TOKENS_USD = 0.5;
-const OUTPUT_PRICE_PER_MILLION_TOKENS_USD = 3;
+import { GEMINI_FLASH_LITE_PRICING } from "@/lib/gemini-prompt";
 
 export type GenerationUsage = {
   inputTokens: number | null;
@@ -36,8 +35,9 @@ export function calculateGenerationUsage(
   const outputTokens = validTokenCount(metadata.candidatesTokenCount) ?? 0;
   const thinkingTokens = validTokenCount(metadata.thoughtsTokenCount) ?? 0;
   const estimatedCostUsd =
-    (inputTokens * INPUT_PRICE_PER_MILLION_TOKENS_USD +
-      (outputTokens + thinkingTokens) * OUTPUT_PRICE_PER_MILLION_TOKENS_USD) /
+    (inputTokens * GEMINI_FLASH_LITE_PRICING.inputUsdPerMillionTokens +
+      (outputTokens + thinkingTokens) *
+        GEMINI_FLASH_LITE_PRICING.outputIncludingThinkingUsdPerMillionTokens) /
     1_000_000;
 
   return { inputTokens, outputTokens, thinkingTokens, estimatedCostUsd };

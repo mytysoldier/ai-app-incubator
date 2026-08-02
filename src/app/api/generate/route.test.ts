@@ -107,7 +107,11 @@ describe("POST /api/generate", () => {
   });
 
   it("rejects malformed model output without returning its contents", async () => {
-    mocks.generateContent.mockResolvedValue({ text: '{"not":"a definition"}' });
+    const logSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    mocks.generateContent.mockResolvedValue({
+      text: '{"not":"a definition"}',
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 50, thoughtsTokenCount: 10 },
+    });
 
     const response = await POST(createRequest(validRequestBody));
 
@@ -118,6 +122,10 @@ describe("POST /api/generate", () => {
         message: "生成結果を処理できませんでした。もう一度お試しください。",
       },
     });
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"inputTokens":100'),
+    );
+    logSpy.mockRestore();
   });
 
   it("retries a rate-limited request once, then returns a safe 429 response", async () => {

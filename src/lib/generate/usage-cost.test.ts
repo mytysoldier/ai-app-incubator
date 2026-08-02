@@ -13,7 +13,7 @@ describe("calculateGenerationUsage", () => {
       inputTokens: 1_000,
       outputTokens: 500,
       thinkingTokens: 200,
-      estimatedCostUsd: 0.0026,
+      estimatedCostUsd: 0.0013,
     });
   });
 
