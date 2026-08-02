@@ -119,6 +119,30 @@ describe("Home", () => {
     );
   });
 
+  it("announces generation progress to assistive technology", async () => {
+    let resolveRequest: ((response: Response) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(
+        () => new Promise<Response>((resolve) => {
+          resolveRequest = resolve;
+        }),
+      ),
+    );
+    render(<Home />);
+
+    fireEvent.change(screen.getByLabelText("アプリアイデア"), {
+      target: { value: "忙しい個人開発者が週末でアプリ案を整理できるサービス" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
+
+    expect(screen.getByText("MVP定義書を生成しています。完了までお待ちください。")).toBeDefined();
+    expect(screen.getByRole("form").getAttribute("aria-busy")).toBe("true");
+
+    resolveRequest?.(new Response(JSON.stringify({ data: completeDefinition }), { status: 200 }));
+    expect(await screen.findByRole("heading", { name: "MVP定義書" })).toBeDefined();
+  });
+
   it("shows rate limit guidance and allows retrying without losing the input", async () => {
     const fetchMock = vi
       .fn()
