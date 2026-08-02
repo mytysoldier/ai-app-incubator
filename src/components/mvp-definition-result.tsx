@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   toMvpDefinitionMarkdown,
   type MvpDefinition,
@@ -40,6 +40,11 @@ export function MvpDefinitionResult({
 }: MvpDefinitionResultProps) {
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);
   const copyRequestId = useRef(0);
+  const resultRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    resultRef.current?.focus();
+  }, []);
 
   async function handleCopy() {
     const requestId = copyRequestId.current + 1;
@@ -67,6 +72,7 @@ export function MvpDefinitionResult({
     <section
       aria-labelledby="mvp-definition-title"
       className="mvp-definition-result"
+      ref={resultRef}
       tabIndex={-1}
     >
       <div className="result-heading">
