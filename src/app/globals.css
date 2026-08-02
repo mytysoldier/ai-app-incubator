@@ -73,6 +73,7 @@ h1 {
   color: var(--muted);
   font-size: clamp(1rem, 2vw, 1.125rem);
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
 .how-to,
@@ -213,6 +214,13 @@ textarea[aria-invalid="true"] {
   line-height: 1.5;
 }
 
+.generation-status {
+  min-height: 1.35rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .submit-button {
   min-height: 52px;
   border: 0;
@@ -312,12 +320,16 @@ textarea[aria-invalid="true"] {
   font-size: 0.875rem;
 }
 
+.result-section h3,
+.result-section h4,
+.result-section h5,
 .result-section p,
 .result-list,
 .detail-list {
   color: #343440;
   font-size: 0.9375rem;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .result-list {
@@ -345,6 +357,7 @@ textarea[aria-invalid="true"] {
 }
 
 .result-card {
+  min-width: 0;
   padding: 16px;
   border-radius: 10px;
   background: #ffffff;
@@ -408,5 +421,14 @@ textarea[aria-invalid="true"] {
   .generation-error {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .generation-error .secondary-button {
+    width: 100%;
+  }
+
+  .detail-list div {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }

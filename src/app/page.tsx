@@ -227,7 +227,16 @@ export default function Home() {
           </ol>
         </section>
 
-        <form className="idea-form" noValidate onSubmit={handleSubmit}>
+        <p aria-live="polite" className="generation-status">
+          {isSubmitting ? "MVP定義書を生成しています。完了までお待ちください。" : ""}
+        </p>
+        <form
+          aria-label="MVP定義書生成フォーム"
+          aria-busy={isSubmitting}
+          className="idea-form"
+          noValidate
+          onSubmit={handleSubmit}
+        >
           {generationError && (
             <div className="generation-error" role="alert">
               <p>{generationError}</p>
