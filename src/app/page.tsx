@@ -1,13 +1,28 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import { MvpDefinitionResult } from "@/components/mvp-definition-result";
+import { isMvpDefinition, type MvpDefinition } from "@/lib/mvp-definition";
 
 const IDEA_MIN_LENGTH = 20;
 const FIELD_MAX_LENGTH = 2000;
+const REQUEST_TIMEOUT_MS = 180_000;
 
 type FormErrors = {
   idea?: string;
   constraints?: string;
+};
+
+type GenerationErrorCode =
+  | "configuration_error"
+  | "generation_timeout"
+  | "invalid_model_response"
+  | "invalid_request"
+  | "rate_limited"
+  | "upstream_error";
+
+type GenerationErrorResponse = {
+  error?: { code?: unknown; message?: unknown };
 };
 
 function getCharacterCount(value: string): number {
@@ -36,30 +51,122 @@ function validateConstraints(value: string): string | undefined {
   }
 }
 
+function messageForGenerationError(code: GenerationErrorCode | undefined): string {
+  switch (code) {
+    case "rate_limited":
+      return "現在リクエストが集中しています。少し待ってから再試行してください。";
+    case "generation_timeout":
+      return "生成に時間がかかっています。時間をおいて再試行してください。";
+    case "invalid_model_response":
+      return "生成結果を処理できませんでした。もう一度お試しください。";
+    case "upstream_error":
+      return "生成サービスとの通信に失敗しました。時間をおいて再試行してください。";
+    case "configuration_error":
+      return "生成サービスの設定が完了していません。時間をおいて再試行してください。";
+    case "invalid_request":
+      return "入力内容を確認できませんでした。入力内容を見直して再試行してください。";
+    default:
+      return "通信に失敗しました。接続を確認して再試行してください。";
+  }
+}
+
+function getErrorCode(value: unknown): GenerationErrorCode | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const knownCodes: GenerationErrorCode[] = [
+    "configuration_error",
+    "generation_timeout",
+    "invalid_model_response",
+    "invalid_request",
+    "rate_limited",
+    "upstream_error",
+  ];
+  return knownCodes.includes(value as GenerationErrorCode)
+    ? (value as GenerationErrorCode)
+    : undefined;
+}
+
 export default function Home() {
   const [idea, setIdea] = useState("");
   const [constraints, setConstraints] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [definition, setDefinition] = useState<MvpDefinition | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const requestId = useRef(0);
   const ideaCharacterCount = getCharacterCount(idea);
   const constraintsCharacterCount = getCharacterCount(constraints);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function submitGeneration() {
     const nextErrors = {
       idea: validateIdea(idea),
       constraints: validateConstraints(constraints),
     };
-
     setErrors(nextErrors);
 
     if (nextErrors.idea || nextErrors.constraints) {
       return;
     }
 
-    // 生成APIは後続Issueで接続する。ここでは二重送信を防ぐUI状態だけを管理する。
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     setIsSubmitting(true);
+    setGenerationError(null);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ idea, constraints }),
+        signal: controller.signal,
+      });
+      const responseBody: unknown = await response.json().catch(() => undefined);
+
+      if (currentRequestId !== requestId.current) {
+        return;
+      }
+
+      if (!response.ok) {
+        const errorBody = responseBody as GenerationErrorResponse | undefined;
+        setGenerationError(messageForGenerationError(getErrorCode(errorBody?.error?.code)));
+        return;
+      }
+
+      if (
+        typeof responseBody !== "object" ||
+        responseBody === null ||
+        !("data" in responseBody) ||
+        !isMvpDefinition(responseBody.data)
+      ) {
+        setGenerationError(messageForGenerationError("invalid_model_response"));
+        return;
+      }
+
+      setDefinition(responseBody.data);
+    } catch (error) {
+      if (currentRequestId !== requestId.current) {
+        return;
+      }
+      setGenerationError(
+        error instanceof DOMException && error.name === "AbortError"
+          ? messageForGenerationError("generation_timeout")
+          : messageForGenerationError(undefined),
+      );
+    } finally {
+      window.clearTimeout(timeout);
+      if (currentRequestId === requestId.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submitGeneration();
   }
 
   function handleIdeaChange(value: string) {
@@ -84,6 +191,22 @@ export default function Home() {
     }
   }
 
+  function handleRegenerate() {
+    requestId.current += 1;
+    setDefinition(null);
+    setGenerationError(null);
+  }
+
+  if (definition) {
+    return (
+      <main className="page-shell">
+        <div className="content">
+          <MvpDefinitionResult definition={definition} onRegenerate={handleRegenerate} />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="page-shell">
       <div className="content">
@@ -105,12 +228,18 @@ export default function Home() {
         </section>
 
         <form className="idea-form" noValidate onSubmit={handleSubmit}>
+          {generationError && (
+            <div className="generation-error" role="alert">
+              <p>{generationError}</p>
+              <button className="secondary-button" onClick={() => void submitGeneration()} type="button">
+                再試行する
+              </button>
+            </div>
+          )}
           <div className="form-field">
             <div className="field-heading">
               <label htmlFor="idea">アプリアイデア</label>
-              <span className="required" aria-hidden="true">
-                必須
-              </span>
+              <span className="required" aria-hidden="true">必須</span>
             </div>
             <p id="idea-hint" className="field-hint">
               どんな人の、どんな課題を解決したいかを書いてください。20〜2,000文字。
@@ -127,16 +256,8 @@ export default function Home() {
               value={idea}
             />
             <div className="field-footer">
-              {errors.idea ? (
-                <p id="idea-error" className="field-error" role="alert">
-                  {errors.idea}
-                </p>
-              ) : (
-                <span />
-              )}
-              <p className="character-count" aria-live="polite">
-                {ideaCharacterCount} / {FIELD_MAX_LENGTH}文字
-              </p>
+              {errors.idea ? <p id="idea-error" className="field-error" role="alert">{errors.idea}</p> : <span />}
+              <p className="character-count" aria-live="polite">{ideaCharacterCount} / {FIELD_MAX_LENGTH}文字</p>
             </div>
           </div>
 
@@ -149,11 +270,7 @@ export default function Home() {
               使いたい技術、予算、期限、避けたい機能などがあれば入力してください。最大2,000文字。
             </p>
             <textarea
-              aria-describedby={
-                errors.constraints
-                  ? "constraints-hint constraints-error"
-                  : "constraints-hint"
-              }
+              aria-describedby={errors.constraints ? "constraints-hint constraints-error" : "constraints-hint"}
               aria-invalid={Boolean(errors.constraints)}
               id="constraints"
               name="constraints"
@@ -163,16 +280,8 @@ export default function Home() {
               value={constraints}
             />
             <div className="field-footer">
-              {errors.constraints ? (
-                <p id="constraints-error" className="field-error" role="alert">
-                  {errors.constraints}
-                </p>
-              ) : (
-                <span />
-              )}
-              <p className="character-count" aria-live="polite">
-                {constraintsCharacterCount} / {FIELD_MAX_LENGTH}文字
-              </p>
+              {errors.constraints ? <p id="constraints-error" className="field-error" role="alert">{errors.constraints}</p> : <span />}
+              <p className="character-count" aria-live="polite">{constraintsCharacterCount} / {FIELD_MAX_LENGTH}文字</p>
             </div>
           </div>
 
@@ -181,7 +290,7 @@ export default function Home() {
           </aside>
 
           <button className="submit-button" disabled={isSubmitting} type="submit">
-            {isSubmitting ? "生成を準備しています…" : "MVPの定義書を生成する"}
+            {isSubmitting ? "生成しています…" : "MVPの定義書を生成する"}
           </button>
         </form>
       </div>

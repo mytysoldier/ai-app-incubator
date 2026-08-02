@@ -198,6 +198,21 @@ textarea[aria-invalid="true"] {
   line-height: 1.6;
 }
 
+.generation-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #f2c5c1;
+  border-radius: 12px;
+  padding: 14px;
+  color: var(--error);
+  background: #fff4f2;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
 .submit-button {
   min-height: 52px;
   border: 0;
@@ -388,5 +403,10 @@ textarea[aria-invalid="true"] {
 
   .result-actions button {
     flex: 1 1 12rem;
+  }
+
+  .generation-error {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

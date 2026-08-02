@@ -1,8 +1,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { completeDefinition } from "@/lib/mvp-definition/test-fixtures";
 import Home from "./page";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe("Home", () => {
   it("renders the input form and privacy notice", () => {
@@ -83,16 +87,58 @@ describe("Home", () => {
     expect(screen.getByText("2001 / 2000文字")).toBeDefined();
   });
 
-  it("disables the button while a valid request is being prepared", () => {
+  it("submits validated input, moves focus to the result, and keeps input for regeneration", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: completeDefinition }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
     render(<Home />);
 
-    fireEvent.change(screen.getByLabelText("アプリアイデア"), {
+    const idea = screen.getByLabelText("アプリアイデア");
+    fireEvent.change(idea, {
       target: { value: "忙しい個人開発者が週末でアプリ案を整理できるサービス" },
     });
     fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
 
-    expect(
-      screen.getByRole("button", { name: "生成を準備しています…" }),
-    ).toHaveProperty("disabled", true);
+    const result = await screen.findByRole("heading", { name: "MVP定義書" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/generate",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(result.closest("section")).toBe(document.activeElement);
+
+    fireEvent.click(screen.getByRole("button", { name: "もう一度生成する" }));
+    expect(screen.getByLabelText("アプリアイデア")).toHaveProperty(
+      "value",
+      "忙しい個人開発者が週末でアプリ案を整理できるサービス",
+    );
+  });
+
+  it("shows rate limit guidance and allows retrying without losing the input", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ error: { code: "rate_limited" } }),
+          { status: 429 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: completeDefinition }), { status: 200 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<Home />);
+
+    const idea = screen.getByLabelText("アプリアイデア");
+    fireEvent.change(idea, {
+      target: { value: "忙しい個人開発者が週末でアプリ案を整理できるサービス" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("少し待ってから再試行");
+    expect(idea).toHaveProperty("value", "忙しい個人開発者が週末でアプリ案を整理できるサービス");
+
+    fireEvent.click(screen.getByRole("button", { name: "再試行する" }));
+    expect(await screen.findByRole("heading", { name: "MVP定義書" })).toBeDefined();
   });
 });
