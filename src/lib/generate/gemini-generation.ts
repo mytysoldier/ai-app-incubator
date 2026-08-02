@@ -95,12 +95,16 @@ async function requestGeminiDefinition(
         },
       });
 
+      const usage = calculateGenerationUsage(response.usageMetadata);
       if (!response.text) {
-        throw new Error("Gemini returned an empty response");
+        throw new GenerationError("invalid_model_response", usage);
       }
-      return { text: response.text, usage: calculateGenerationUsage(response.usageMetadata) };
+      return { text: response.text, usage };
     } catch (error) {
       lastError = error;
+      if (error instanceof GenerationError) {
+        throw error;
+      }
       if (attempt === MAX_GENERATION_ATTEMPTS - 1 || !isRetryableError(error)) {
         throw toGenerationError(error);
       }

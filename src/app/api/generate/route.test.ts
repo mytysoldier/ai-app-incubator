@@ -128,6 +128,25 @@ describe("POST /api/generate", () => {
     logSpy.mockRestore();
   });
 
+  it("logs usage when Gemini returns an empty response", async () => {
+    const logSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    mocks.generateContent.mockResolvedValue({
+      text: "",
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 0, thoughtsTokenCount: 10 },
+    });
+
+    const response = await POST(createRequest(validRequestBody));
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "invalid_model_response", message: expect.any(String) },
+    });
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"inputTokens":100'),
+    );
+    logSpy.mockRestore();
+  });
+
   it("retries a rate-limited request once, then returns a safe 429 response", async () => {
     mocks.generateContent.mockRejectedValue({ status: 429 });
 
