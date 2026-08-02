@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   toMvpDefinitionMarkdown,
   type MvpDefinition,
@@ -12,6 +12,11 @@ type MvpDefinitionResultProps = {
 };
 
 type CopyStatus = "idle" | "success" | "error";
+
+type CopyFeedback = {
+  definition: MvpDefinition;
+  status: Exclude<CopyStatus, "idle">;
+};
 
 const EMPTY_TEXT = "該当なし";
 
@@ -33,20 +38,30 @@ export function MvpDefinitionResult({
   definition,
   onRegenerate,
 }: MvpDefinitionResultProps) {
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
+  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);
+  const copyRequestId = useRef(0);
 
   async function handleCopy() {
+    const requestId = copyRequestId.current + 1;
+    copyRequestId.current = requestId;
+
     try {
       if (!navigator.clipboard?.writeText) {
         throw new Error("Clipboard API is unavailable");
       }
 
       await navigator.clipboard.writeText(toMvpDefinitionMarkdown(definition));
-      setCopyStatus("success");
+      if (copyRequestId.current === requestId) {
+        setCopyFeedback({ definition, status: "success" });
+      }
     } catch {
-      setCopyStatus("error");
+      if (copyRequestId.current === requestId) {
+        setCopyFeedback({ definition, status: "error" });
+      }
     }
   }
+
+  const copyStatus = copyFeedback?.definition === definition ? copyFeedback.status : "idle";
 
   return (
     <section
