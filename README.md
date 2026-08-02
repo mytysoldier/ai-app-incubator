@@ -24,6 +24,8 @@ npm run build
 
 Gemini APIを利用する後続Issueでは、`.env.example`を参考にローカル環境変数を設定します。APIキーをリポジトリへコミットしないでください。
 
+本番公開時のVercel設定、Bot Protection、Geminiの費用上限と確認手順は[本番リリースと運用手順](docs/release-operations.md)を参照してください。
+
 ## AI開発テンプレートについて
 
 AIエージェントを中心に、GitHub Issueでタスクを管理しながら個人開発を進めるためのテンプレートです。
