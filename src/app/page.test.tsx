@@ -136,8 +136,12 @@ describe("Home", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "MVPの定義書を生成する" }));
 
-    expect(screen.getByText("MVP定義書を生成しています。完了までお待ちください。")).toBeDefined();
-    expect(screen.getByRole("form").getAttribute("aria-busy")).toBe("true");
+    const generationStatus = screen.getByText(
+      "MVP定義書を生成しています。完了までお待ちください。",
+    );
+    const form = screen.getByRole("form");
+    expect(generationStatus.closest("form")).toBeNull();
+    expect(form.getAttribute("aria-busy")).toBe("true");
 
     resolveRequest?.(new Response(JSON.stringify({ data: completeDefinition }), { status: 200 }));
     expect(await screen.findByRole("heading", { name: "MVP定義書" })).toBeDefined();

@@ -227,6 +227,9 @@ export default function Home() {
           </ol>
         </section>
 
+        <p aria-live="polite" className="generation-status">
+          {isSubmitting ? "MVP定義書を生成しています。完了までお待ちください。" : ""}
+        </p>
         <form
           aria-label="MVP定義書生成フォーム"
           aria-busy={isSubmitting}
@@ -296,9 +299,6 @@ export default function Home() {
             <p>個人情報、APIキー、パスワード、その他の秘密情報は入力しないでください。</p>
           </aside>
 
-          <p aria-live="polite" className="generation-status">
-            {isSubmitting ? "MVP定義書を生成しています。完了までお待ちください。" : ""}
-          </p>
           <button className="submit-button" disabled={isSubmitting} type="submit">
             {isSubmitting ? "生成しています…" : "MVPの定義書を生成する"}
           </button>

@@ -320,6 +320,9 @@ textarea[aria-invalid="true"] {
   font-size: 0.875rem;
 }
 
+.result-section h3,
+.result-section h4,
+.result-section h5,
 .result-section p,
 .result-list,
 .detail-list {
