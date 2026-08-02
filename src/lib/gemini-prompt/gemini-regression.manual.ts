@@ -109,6 +109,10 @@ describe("Gemini prompt regression evaluation (manual only)", () => {
           },
         });
 
+        ({ usage, inputTokens, outputTokens, thinkingTokens } = usageFromMetadata(
+          response.usageMetadata,
+        ));
+
         if (!response.text) {
           throw new Error("Gemini returned an empty response.");
         }
@@ -119,9 +123,6 @@ describe("Gemini prompt regression evaluation (manual only)", () => {
         failedQualityCriteria = evaluation.checks
           .filter((check) => !check.passed)
           .map((check) => check.criterion);
-        ({ usage, inputTokens, outputTokens, thinkingTokens } = usageFromMetadata(
-          response.usageMetadata,
-        ));
 
         expect(parsed.success).toBe(true);
         expect(evaluation.passed).toBe(true);
