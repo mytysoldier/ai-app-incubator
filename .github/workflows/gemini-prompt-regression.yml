@@ -1,0 +1,48 @@
+name: Gemini prompt regression evaluation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    name: Evaluate representative Gemini prompts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Gemini API key is configured
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY must be configured as an Actions secret before running this workflow."
+            exit 1
+          fi
+
+      - name: Run Gemini prompt regression evaluation
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_EVALUATION_ARTIFACT: ${{ runner.temp }}/gemini-prompt-evaluation/summary.json
+        run: npm run test:gemini-regression
+
+      - name: Upload safe evaluation summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-prompt-evaluation-summary
+          path: ${{ runner.temp }}/gemini-prompt-evaluation/summary.json
+          if-no-files-found: ignore
