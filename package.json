@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:gemini-regression": "vitest run --config vitest.gemini-regression.config.mts",
     "test:watch": "vitest"
   },
   "dependencies": {

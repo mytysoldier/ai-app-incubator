@@ -30,7 +30,18 @@ System Instructionとユーザープロンプトの組み立ては `src/lib/gemi
 4. 各JSONを `evaluateMvpDefinition` で評価し、失敗した基準と重複・過剰機能・曖昧な表現を記録する。
 5. 不足があればSystem Instructionを優先して直し、同じ10件を再評価する。
 
-10件分の出力JSONとAI StudioまたはAPIの利用量を記録できたら、`evaluateMvpDefinitionBatch` へ渡す。これにより、10件以上・ID重複なし・全件の品質ゲート合格・平均推定料金1円未満を一度に判定できる。トークン数が安全な0以上の整数でない場合は、料金を計算せず不合格にする。1円未満の判定は浮動小数点ではなく料金の整数比で比較するため、ちょうど1円は不合格になる。この関数は外部APIを呼ばず、出力と利用量を評価するだけである。
+10件分の出力JSONとAPIの利用量を `evaluateMvpDefinitionBatch` へ渡す。これにより、10件以上・ID重複なし・全件の品質ゲート合格・平均推定料金1円未満を一度に判定できる。トークン数が安全な0以上の整数でない場合は、料金を計算せず不合格にする。1円未満の判定は浮動小数点ではなく料金の整数比で比較するため、ちょうど1円は不合格になる。この関数は外部APIを呼ばず、出力と利用量を評価するだけである。
+
+### GitHub Actionsでの手動回帰評価（Issue #20）
+
+`.github/workflows/gemini-prompt-regression.yml` は `workflow_dispatch` だけで起動する。push・pull requestではGemini APIを呼ばない。
+
+1. Gemini専用プロジェクトのAPIキーを、GitHub repository の **Settings → Secrets and variables → Actions** で `GEMINI_API_KEY` として登録する。
+2. GitHub Actionsの **Gemini prompt regression evaluation** を開き、**Run workflow** で手動実行する。
+3. 成功条件は、代表入力10件すべてのSchema・品質評価合格と、平均推定料金が1円未満であること。
+4. 実行後、Artifact `gemini-prompt-evaluation-summary` で件数、ケースID、合否、失敗した品質基準、利用トークン数、推定料金だけを確認する。
+
+`GEMINI_API_KEY` が未設定の場合は、値を出力せず設定不足として失敗する。入力本文、Geminiの生成本文、APIキーはログ、Job Summary、Artifactに記録しない。
 
 ## 料金評価
 
