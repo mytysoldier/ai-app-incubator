@@ -218,6 +218,145 @@ textarea[aria-invalid="true"] {
   opacity: 0.7;
 }
 
+.mvp-definition-result {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+  padding: clamp(22px, 5vw, 40px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 16px 45px rgb(54 48 105 / 8%);
+}
+
+.result-heading,
+.result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.result-heading h2 {
+  font-size: clamp(1.5rem, 5vw, 2.125rem);
+}
+
+.result-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.result-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.secondary-button {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--foreground);
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f4f3fb;
+}
+
+.copy-feedback {
+  color: #166534;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.result-sections {
+  display: grid;
+  gap: 16px;
+}
+
+.result-section {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.result-section h3 {
+  font-size: 1rem;
+}
+
+.result-section h4 {
+  font-size: 0.95rem;
+}
+
+.result-section h5 {
+  margin-top: 14px;
+  font-size: 0.875rem;
+}
+
+.result-section p,
+.result-list,
+.detail-list {
+  color: #343440;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+.result-list {
+  display: grid;
+  gap: 6px;
+  padding-left: 1.3rem;
+}
+
+.empty-value {
+  color: var(--muted) !important;
+}
+
+.result-section-emphasis {
+  border-color: #b6afe9;
+  background: #f6f5ff;
+}
+
+.result-section-muted {
+  background: #fafafd;
+}
+
+.result-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.result-card {
+  padding: 16px;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.result-card p + .detail-list,
+.result-card p + h5 {
+  margin-top: 12px;
+}
+
+.detail-list {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-list div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 8px;
+}
+
+.detail-list dt,
+.detail-label {
+  color: var(--muted) !important;
+  font-weight: 650;
+}
+
 @media (max-width: 480px) {
   .page-shell {
     padding-right: 16px;
@@ -231,5 +370,23 @@ textarea[aria-invalid="true"] {
 
   .how-to {
     padding: 20px;
+  }
+
+  .mvp-definition-result {
+    border-radius: 16px;
+  }
+
+  .result-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .result-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .result-actions button {
+    flex: 1 1 12rem;
   }
 }
