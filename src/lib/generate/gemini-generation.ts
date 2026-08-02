@@ -10,6 +10,7 @@ import {
   type MvpDefinition,
 } from "@/lib/mvp-definition";
 import type { GenerateRequestInput } from "./request-validation";
+import { calculateGenerationUsage, type GenerationUsage } from "./usage-cost";
 
 const GENERATION_TIMEOUT_MS = 90_000;
 const MAX_GENERATION_ATTEMPTS = 2;
@@ -21,10 +22,18 @@ export type GenerationErrorCode =
   | "upstream_error";
 
 export class GenerationError extends Error {
-  constructor(readonly code: GenerationErrorCode) {
+  constructor(
+    readonly code: GenerationErrorCode,
+    readonly usage?: GenerationUsage,
+  ) {
     super(code);
   }
 }
+
+export type MvpDefinitionGeneration = {
+  definition: MvpDefinition;
+  usage: GenerationUsage;
+};
 
 function getStatusCode(error: unknown): number | undefined {
   if (typeof error !== "object" || error === null || !("status" in error)) {
@@ -61,7 +70,10 @@ function toGenerationError(error: unknown): GenerationError {
   return new GenerationError("upstream_error");
 }
 
-async function requestGeminiDefinition(apiKey: string, prompt: string): Promise<string> {
+async function requestGeminiDefinition(
+  apiKey: string,
+  prompt: string,
+): Promise<{ text: string; usage: GenerationUsage }> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
@@ -83,12 +95,16 @@ async function requestGeminiDefinition(apiKey: string, prompt: string): Promise<
         },
       });
 
+      const usage = calculateGenerationUsage(response.usageMetadata);
       if (!response.text) {
-        throw new Error("Gemini returned an empty response");
+        throw new GenerationError("invalid_model_response", usage);
       }
-      return response.text;
+      return { text: response.text, usage };
     } catch (error) {
       lastError = error;
+      if (error instanceof GenerationError) {
+        throw error;
+      }
       if (attempt === MAX_GENERATION_ATTEMPTS - 1 || !isRetryableError(error)) {
         throw toGenerationError(error);
       }
@@ -103,16 +119,16 @@ async function requestGeminiDefinition(apiKey: string, prompt: string): Promise<
 export async function generateMvpDefinition(
   apiKey: string,
   input: GenerateRequestInput,
-): Promise<MvpDefinition> {
-  const responseText = await requestGeminiDefinition(
+): Promise<MvpDefinitionGeneration> {
+  const response = await requestGeminiDefinition(
     apiKey,
     createMvpDefinitionUserPrompt(input),
   );
-  const parsedDefinition = parseMvpDefinitionJson(responseText);
+  const parsedDefinition = parseMvpDefinitionJson(response.text);
 
   if (!parsedDefinition.success) {
-    throw new GenerationError("invalid_model_response");
+    throw new GenerationError("invalid_model_response", response.usage);
   }
 
-  return parsedDefinition.data;
+  return { definition: parsedDefinition.data, usage: response.usage };
 }

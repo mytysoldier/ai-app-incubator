@@ -286,6 +286,7 @@ export default function Home() {
           </div>
 
           <aside className="privacy-notice" aria-label="入力内容に関する注意">
+            <p>入力内容はMVP定義書の生成のためGemini APIへ送信されます。入力内容と生成結果は保存しません。</p>
             <p>個人情報、APIキー、パスワード、その他の秘密情報は入力しないでください。</p>
           </aside>
 

@@ -25,6 +25,11 @@ describe("Home", () => {
         "個人情報、APIキー、パスワード、その他の秘密情報は入力しないでください。",
       ),
     ).toBeDefined();
+    expect(
+      screen.getByText(
+        "入力内容はMVP定義書の生成のためGemini APIへ送信されます。入力内容と生成結果は保存しません。",
+      ),
+    ).toBeDefined();
   });
 
   it("shows an associated error for an empty idea", () => {
