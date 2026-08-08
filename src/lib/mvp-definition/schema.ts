@@ -341,3 +341,35 @@ export const mvpDefinitionSchema = {
     "completionCriteria",
   ],
 } as const;
+
+const GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS = new Set([
+  "$schema",
+  "minLength",
+  "maxLength",
+  "pattern",
+]);
+
+function toGeminiResponseJsonSchema(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(toGeminiResponseJsonSchema);
+  }
+
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS.has(key))
+      .map(([key, child]) => [key, toGeminiResponseJsonSchema(child)]),
+  );
+}
+
+/**
+ * Gemini Structured Output accepts only a subset of JSON Schema. Keep the
+ * stricter schema above for local response validation, and omit unsupported
+ * string constraints only from the schema sent to Gemini.
+ */
+export const geminiMvpDefinitionSchema = toGeminiResponseJsonSchema(
+  mvpDefinitionSchema,
+);

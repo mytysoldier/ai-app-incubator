@@ -1,4 +1,8 @@
-export { MVP_DEFINITION_LIMITS, mvpDefinitionSchema } from "./schema";
+export {
+  geminiMvpDefinitionSchema,
+  MVP_DEFINITION_LIMITS,
+  mvpDefinitionSchema,
+} from "./schema";
 export { toMvpDefinitionMarkdown } from "./to-markdown";
 export type { JsonSchemaToType, MvpDefinition } from "./types";
 export {

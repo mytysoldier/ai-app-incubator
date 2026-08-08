@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   MVP_DEFINITION_LIMITS,
+  geminiMvpDefinitionSchema,
   isMvpDefinition,
   mvpDefinitionSchema,
   parseMvpDefinition,
@@ -152,6 +153,28 @@ describe("mvpDefinitionSchema", () => {
     expect(Object.keys(mvpDefinitionSchema.properties)).toEqual(
       mvpDefinitionSchema.required,
     );
+  });
+
+  it("omits unsupported string constraints only from the Gemini response schema", () => {
+    const serializedSchema = JSON.stringify(geminiMvpDefinitionSchema);
+
+    expect(serializedSchema).not.toContain('"$schema"');
+    expect(serializedSchema).not.toContain('"minLength"');
+    expect(serializedSchema).not.toContain('"maxLength"');
+    expect(serializedSchema).not.toContain('"pattern"');
+    expect(geminiMvpDefinitionSchema).toMatchObject({
+      type: "object",
+      required: mvpDefinitionSchema.required,
+      properties: {
+        overview: { type: "string" },
+        implementationTasks: { type: "array" },
+      },
+    });
+    expect(mvpDefinitionSchema.properties.overview).toMatchObject({
+      minLength: 1,
+      maxLength: MVP_DEFINITION_LIMITS.text,
+      pattern: "\\S",
+    });
   });
 
   it("accepts complete and minimal definitions", () => {
