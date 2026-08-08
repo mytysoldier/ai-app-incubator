@@ -22,9 +22,11 @@ npm test
 npm run build
 ```
 
-Gemini APIを利用する後続Issueでは、`.env.example`を参考にローカル環境変数を設定します。APIキーをリポジトリへコミットしないでください。
+ローカルで生成機能を確認するときは、`.env.example`を参考に`GEMINI_API_KEY`を設定します。APIキーをリポジトリへコミットしないでください。
 
 本番公開時のVercel設定、Bot Protection、Geminiの費用上限と確認手順は[本番リリースと運用手順](docs/release-operations.md)を参照してください。
+
+公開URL: [AI App Incubator](https://ai-app-incubator-rho.vercel.app/)
 
 ## AI開発テンプレートについて
 

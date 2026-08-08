@@ -1,6 +1,6 @@
 # 本番リリースと運用手順
 
-Issue #12 の公開・保護・費用管理を、安全に再現するための手順です。値そのもの、APIキー、入力本文、生成結果はこのリポジトリへ記録しません。
+公開・保護・費用管理を、安全に再現するための手順です。APIキー、入力本文、生成結果はこのリポジトリへ記録しません。料金上限は運用方針が変わったときに、この文書とダッシュボードを同時に更新します。
 
 ## 事前確認
 
@@ -22,7 +22,7 @@ npm run build
 3. **Settings → Environment Variables** で `GEMINI_API_KEY` を Production と Preview に追加する。
    - `NEXT_PUBLIC_` 接頭辞は付けない。
    - 値はサーバー環境変数としてのみ登録し、画面共有・スクリーンショット・ログに残さない。
-4. `main` をデプロイし、発行された Production URL を記録する。Preview URL でも環境変数を利用するため、信頼できない PR からのデプロイには注意する。
+4. `main` へのマージでProductionへ自動デプロイされることを確認し、Deploymentsが`Ready`になったらProduction URLを開く。Preview URLでも環境変数を利用するため、信頼できないPRからのデプロイには注意する。
 
 ## Bot Protection
 
@@ -34,8 +34,8 @@ Vercel Dashboard の対象プロジェクトで **Firewall → Rules → Bot Man
 
 ## Gemini の費用・利用量設定
 
-1. Google AI Studio で Gemini 専用プロジェクトを選び、**Spend → Monthly spend cap** を **USD 5** に設定する。
-2. Google Cloud Console の対象 Billing Account で、対象プロジェクトだけをスコープにした月次 Budget を **USD 5** で作成する。
+1. Google AI StudioでGemini専用プロジェクトを選び、**Spend → Monthly spend cap** を初期運用額の **300円** に設定する。
+2. Google Cloud Consoleの対象Billing Accountで、対象プロジェクトだけをスコープにした月次Budgetを **300円** で作成する。
 3. Actual spend のメール通知しきい値を **50%、80%、100%** に設定し、受信者を確認する。
 4. AI Studio の Usage / Rate limits で、そのプロジェクトと利用モデルの RPM、TPM、RPD を確認する。必要になるまで上限引き上げは申請しない。
 
@@ -43,10 +43,10 @@ Vercel Dashboard の対象プロジェクトで **Firewall → Rules → Bot Man
 
 ## 公開後の確認
 
-Production URL と Preview URL の両方で、次を確認します。
+Production URLで、次を確認します。Previewは環境変数を設定した信頼できるPRだけで確認します。
 
 - 正常な入力で1件生成できる。
-- 空入力、20文字未満、上限超過、400、429、タイムアウト、上流障害が画面で案内され、クラッシュしない。
+- 空入力、20文字未満、上限超過、400、429、タイムアウト、上流障害が画面で案内され、クラッシュしないことを確認する。クライアントのエラー表示を変更した場合は、該当する画面状態も手動で確認する。
 - ブラウザの開発者ツールと公開済みJavaScriptに `GEMINI_API_KEY` が存在しない。
 - Vercel Runtime Logs に入力本文・生成結果・APIキーが出力されていない。
 - 320px幅とキーボード操作で、入力・生成・コピーができる。
