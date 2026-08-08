@@ -36,6 +36,11 @@ describe("Home", () => {
     render(<Home />);
 
     const feedbackLink = screen.getByRole("link", { name: "ご意見・不具合報告を送る" });
+    expect(
+      screen.getByText(
+        "不具合報告・改善要望・お問い合わせがありましたら、ぜひGitHub Issuesでの起票をお願いします。",
+      ),
+    ).toBeDefined();
     expect(feedbackLink.getAttribute("href")).toBe(
       "https://github.com/mytysoldier/ai-app-incubator/issues/new",
     );
