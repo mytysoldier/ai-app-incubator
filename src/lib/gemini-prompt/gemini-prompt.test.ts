@@ -31,6 +31,9 @@ describe("Gemini MVP definition prompt", () => {
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("繰り返さない");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("1〜2週間");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("assumptionsまたはopenQuestions");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("各項目は次の目的で使い分けてください");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("technicalRisksはリスク・影響・軽減策");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).not.toContain("Schemaのdescription");
   });
 
   it("creates prompts for at least ten representative ideas", () => {
