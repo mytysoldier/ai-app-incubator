@@ -92,7 +92,7 @@ function FeedbackLink() {
   return (
     <aside className="feedback-notice" aria-label="ご意見・不具合報告">
       <p>
-        不具合報告・改善要望・お問い合わせは、GitHub Issuesで受け付けています。
+        不具合報告・改善要望・お問い合わせは、GitHub Issuesでの起票をお願いします。
       </p>
       <a
         href="https://github.com/mytysoldier/ai-app-incubator/issues/new"
