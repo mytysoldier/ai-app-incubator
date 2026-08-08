@@ -1,4 +1,8 @@
-import { parseMvpDefinition, type MvpDefinition } from "../mvp-definition";
+import {
+  MVP_DEFINITION_LIMITS,
+  parseMvpDefinition,
+  type MvpDefinition,
+} from "../mvp-definition";
 
 export const GEMINI_PROMPT_CONFIG = {
   model: "gemini-3.1-flash-lite",
@@ -16,6 +20,8 @@ export const MVP_DEFINITION_SYSTEM_INSTRUCTION = `あなたは個人開発者向
 - apisAndServicesはAPI・外部サービス名、利用目的、公開に必須かを記す。techStackは分類、選択、MVPに適する理由を記す。
 - nonFunctionalRequirementsは性能・可用性・セキュリティ・操作性など、technicalRisksはリスク・影響・軽減策を記す。assumptionsは置いた仮定、openQuestionsは未決事項を記す。
 - implementationTasksは実装順、タスク名、実装範囲、検証可能な完了条件を記す。completionCriteriaはMVP全体の完了条件を記す。
+
+ローカル検証と一致させるため、空白だけの文字列は使わないでください。短い名前・分類・型は${MVP_DEFINITION_LIMITS.shortText}文字以内、それ以外の文章は${MVP_DEFINITION_LIMITS.text}文字以内にしてください。配列は原則${MVP_DEFINITION_LIMITS.listItems}件以内とし、appNameCandidatesは${MVP_DEFINITION_LIMITS.appNameCandidates}件、mvpFeaturesとscreensは各${MVP_DEFINITION_LIMITS.features}件、inputOutputItemsは${MVP_DEFINITION_LIMITS.inputOutputItems}件、dataModelsは${MVP_DEFINITION_LIMITS.dataModels}件、各モデルのfieldsは${MVP_DEFINITION_LIMITS.dataModelFields}件、apisAndServicesは${MVP_DEFINITION_LIMITS.apisAndServices}件、techStackは${MVP_DEFINITION_LIMITS.techStackItems}件、technicalRisksは${MVP_DEFINITION_LIMITS.technicalRisks}件、implementationTasksは${MVP_DEFINITION_LIMITS.implementationTasks}件、各タスクのcompletionCriteriaは${MVP_DEFINITION_LIMITS.taskCompletionCriteria}件までにしてください。implementationTasksのorderは1から${MVP_DEFINITION_LIMITS.implementationTasks}の連番にしてください。
 
 次のルールを守ってください。
 - すべての値を自然な日本語で書く。固有名詞や技術名以外の英語は必要最小限にする。
