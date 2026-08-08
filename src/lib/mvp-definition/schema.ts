@@ -344,9 +344,16 @@ export const mvpDefinitionSchema = {
 
 const GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS = new Set([
   "$schema",
+  "additionalProperties",
+  "description",
+  "maximum",
+  "maxItems",
   "minLength",
+  "minimum",
+  "minItems",
   "maxLength",
   "pattern",
+  "title",
 ]);
 
 function toGeminiResponseJsonSchema(value: unknown): unknown {
@@ -359,16 +366,34 @@ function toGeminiResponseJsonSchema(value: unknown): unknown {
   }
 
   return Object.fromEntries(
-    Object.entries(value)
-      .filter(([key]) => !GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS.has(key))
-      .map(([key, child]) => [key, toGeminiResponseJsonSchema(child)]),
+    Object.entries(value).flatMap(([key, child]) => {
+      if (key === "properties" && typeof child === "object" && child !== null) {
+        return [
+          [
+            key,
+            Object.fromEntries(
+              Object.entries(child).map(([propertyName, propertySchema]) => [
+                propertyName,
+                toGeminiResponseJsonSchema(propertySchema),
+              ]),
+            ),
+          ],
+        ];
+      }
+
+      if (GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS.has(key)) {
+        return [];
+      }
+
+      return [[key, toGeminiResponseJsonSchema(child)]];
+    }),
   );
 }
 
 /**
  * Gemini Structured Output accepts only a subset of JSON Schema. Keep the
- * stricter schema above for local response validation, and omit unsupported
- * string constraints only from the schema sent to Gemini.
+ * stricter schema above for local response validation, and send Gemini only
+ * the structural keywords required to produce a compatible response.
  */
 export const geminiMvpDefinitionSchema = toGeminiResponseJsonSchema(
   mvpDefinitionSchema,
