@@ -1,4 +1,4 @@
-# Gemini生成プロンプト評価（Issue #5）
+# Gemini生成プロンプト評価
 
 ## 確定した設定
 
@@ -20,12 +20,12 @@ System Instructionとユーザープロンプトの組み立ては `src/lib/gemi
 4. 実装タスクに連番の順序と完了条件があること
 5. 仮定または未決事項が明示されていること
 
-2026-07-25時点で、プロンプト設定、10件の入力、正常・異常な構造化結果に対する自動評価は `npm test` で成功している。Gemini APIキーはこのリポジトリに保存しないため、実モデルによる10件の最終評価は #7 のAPI実装後に、AI Studioまたは同APIの利用量情報を使って実施する。
+プロンプト設定、10件の入力、正常・異常な構造化結果に対する自動評価は `npm test` で確認する。本番では正常なアイデアからのMVP定義書生成を確認済みである。実モデルによる10件評価はAPI利用料金が発生するため、モデル・プロンプト・スキーマを変更するとき、または定期的な品質評価が必要なときだけ手動で実施する。
 
 ### 実モデル評価の手順
 
 1. AI Studioでモデルを `gemini-3.1-flash-lite`、Thinkingを `minimal` に設定する。
-2. System Instructionへ `MVP_DEFINITION_SYSTEM_INSTRUCTION` を貼り、Structured Outputへ `geminiMvpDefinitionSchema` を設定する。生成結果はローカルの厳密な `mvpDefinitionSchema` で検証する。
+2. System Instructionへ `MVP_DEFINITION_SYSTEM_INSTRUCTION` を貼る。Structured Outputには、Geminiへ送る互換スキーマである `geminiMvpDefinitionSchema` と同じ構造だけを設定する。生成結果はローカルの厳密な `mvpDefinitionSchema` で検証する。
 3. `representativePromptCases` の10件を1件ずつ実行する。
 4. 各JSONを `evaluateMvpDefinition` で評価し、失敗した基準と重複・過剰機能・曖昧な表現を記録する。
 5. 不足があればSystem Instructionを優先して直し、同じ10件を再評価する。
@@ -45,12 +45,12 @@ System Instructionとユーザープロンプトの組み立ては `src/lib/gemi
 
 ## 料金評価
 
-料金は `estimateGeminiGenerationCostYen` で算出する。2026-07-25に確認したGemini Developer APIのStandard料金は、入力 $0.25 / 100万トークン、出力（thinking込み） $1.50 / 100万トークンとしている。換算は保守的に 1 USD = 160円で固定した。料金は変更され得るため、実運用前に [Gemini API料金表](https://ai.google.dev/gemini-api/docs/pricing) を再確認する。
+料金は `estimateGeminiGenerationCostYen` で算出する。コード内の料金定数は検証用の基準値であり、実際の料金は変動し得る。手動回帰評価を実行する前に、必ず [Gemini API料金表](https://ai.google.dev/gemini-api/docs/pricing) を確認して、必要なら料金定数も更新する。
 
 入力6,000トークン、出力（thinking込み）3,000トークンの場合の推定は **0.96円/生成** で、1円未満の目標を満たす。入力が上限へ近づく、またはthinking込み出力が上限を超える場合は目標を満たさない可能性があるため、実測利用量で平均値を確認する。
 
 ## 残る弱点
 
-- 10件の実モデル出力の内容評価と実測トークン数は、APIキーを使える環境で未実施。
+- 10件の実モデル出力の内容評価と実測トークン数は、料金を抑えるため通常のリリース確認では実施しない。モデル・プロンプト・スキーマ変更時の手動回帰評価として実施する。
 - 自動評価は構造と最低限の品質ゲートであり、文章の重複や実装妥当性の最終判断は人手で確認する。
 - 為替とGemini API料金は変動するため、費用目標は実行時の料金・利用量で再検証する。
