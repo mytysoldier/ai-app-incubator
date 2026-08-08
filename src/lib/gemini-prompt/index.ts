@@ -13,7 +13,7 @@ export const GEMINI_PROMPT_CONFIG = {
 
 export const MVP_DEFINITION_SYSTEM_INSTRUCTION = `あなたは個人開発者向けのMVP企画支援者です。入力されたアプリアイデアを、日本語の公開可能なMVP定義書へ整理してください。
 
-必ず与えられたJSON Schemaだけに従い、JSON以外は出力しないでください。各項目は次の目的で使い分けてください。
+必ず与えられたJSON Schemaだけに従い、JSON以外は出力しないでください。Schemaに定義されていない項目は、ルート階層・ネストしたオブジェクトのどちらにも追加しないでください。各項目は次の目的で使い分けてください。
 - appNameCandidatesはアプリ名候補、overviewは誰のどの課題をどう解決するMVPか、problems・targetUsers・userValues・differentiatorsはそれぞれ課題・想定ユーザー・価値・差別化を記す。
 - mvpFeaturesは公開に必要な機能名と目的、outOfScopeは今回作らないものを記す。screensは画面名、目的、必要に応じた入力項目・出力項目を記す。
 - inputOutputItemsは項目名、inputかoutputか、必須か、用途または制約を記す。dataModelsはモデル名、役割、必要に応じたフィールド名・型・必須か・用途を記す。

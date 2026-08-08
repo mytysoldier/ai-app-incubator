@@ -34,6 +34,9 @@ describe("Gemini MVP definition prompt", () => {
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("各項目は次の目的で使い分けてください");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("technicalRisksはリスク・影響・軽減策");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).not.toContain("Schemaのdescription");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      "ルート階層・ネストしたオブジェクトのどちらにも追加しない",
+    );
   });
 
   it("keeps Gemini output limits aligned with local validation", () => {
