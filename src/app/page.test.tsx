@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { completeDefinition } from "@/lib/mvp-definition/test-fixtures";
 import Home from "./page";
@@ -110,7 +110,9 @@ describe("Home", () => {
       "/api/generate",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(result.closest("section")).toBe(document.activeElement);
+    await waitFor(() => {
+      expect(result.closest("section")).toBe(document.activeElement);
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "もう一度生成する" }));
     expect(screen.getByLabelText("アプリアイデア")).toHaveProperty(
