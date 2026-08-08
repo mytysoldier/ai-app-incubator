@@ -9,7 +9,7 @@ import {
   MVP_DEFINITION_SYSTEM_INSTRUCTION,
 } from "./index";
 import { representativePromptCases } from "./evaluation-cases";
-import { mvpDefinitionSchema } from "../mvp-definition";
+import { MVP_DEFINITION_LIMITS, mvpDefinitionSchema } from "../mvp-definition";
 
 describe("Gemini MVP definition prompt", () => {
   it("uses the approved model, minimal thinking, and a cost-safe output target", () => {
@@ -31,6 +31,27 @@ describe("Gemini MVP definition prompt", () => {
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("繰り返さない");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("1〜2週間");
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("assumptionsまたはopenQuestions");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("各項目は次の目的で使い分けてください");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain("technicalRisksはリスク・影響・軽減策");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).not.toContain("Schemaのdescription");
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      "ルート階層・ネストしたオブジェクトのどちらにも追加しない",
+    );
+  });
+
+  it("keeps Gemini output limits aligned with local validation", () => {
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      `短い名前・分類・型は${MVP_DEFINITION_LIMITS.shortText}文字以内`,
+    );
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      `それ以外の文章は${MVP_DEFINITION_LIMITS.text}文字以内`,
+    );
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      `implementationTasksのorderは1から${MVP_DEFINITION_LIMITS.implementationTasks}の連番`,
+    );
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      "空文字列や空白だけの文字列は使わない",
+    );
   });
 
   it("creates prompts for at least ten representative ideas", () => {

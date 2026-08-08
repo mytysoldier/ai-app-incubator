@@ -341,3 +341,60 @@ export const mvpDefinitionSchema = {
     "completionCriteria",
   ],
 } as const;
+
+const GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS = new Set([
+  "$schema",
+  "additionalProperties",
+  "description",
+  "maximum",
+  "maxItems",
+  "minLength",
+  "minimum",
+  "minItems",
+  "maxLength",
+  "pattern",
+  "title",
+]);
+
+function toGeminiResponseJsonSchema(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(toGeminiResponseJsonSchema);
+  }
+
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, child]) => {
+      if (key === "properties" && typeof child === "object" && child !== null) {
+        return [
+          [
+            key,
+            Object.fromEntries(
+              Object.entries(child).map(([propertyName, propertySchema]) => [
+                propertyName,
+                toGeminiResponseJsonSchema(propertySchema),
+              ]),
+            ),
+          ],
+        ];
+      }
+
+      if (GEMINI_UNSUPPORTED_SCHEMA_KEYWORDS.has(key)) {
+        return [];
+      }
+
+      return [[key, toGeminiResponseJsonSchema(child)]];
+    }),
+  );
+}
+
+/**
+ * Gemini Structured Output accepts only a subset of JSON Schema. Keep the
+ * stricter schema above for local response validation, and send Gemini only
+ * the structural keywords required to produce a compatible response.
+ */
+export const geminiMvpDefinitionSchema = toGeminiResponseJsonSchema(
+  mvpDefinitionSchema,
+);

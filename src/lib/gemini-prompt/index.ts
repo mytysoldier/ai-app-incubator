@@ -1,4 +1,8 @@
-import { parseMvpDefinition, type MvpDefinition } from "../mvp-definition";
+import {
+  MVP_DEFINITION_LIMITS,
+  parseMvpDefinition,
+  type MvpDefinition,
+} from "../mvp-definition";
 
 export const GEMINI_PROMPT_CONFIG = {
   model: "gemini-3.1-flash-lite",
@@ -9,7 +13,15 @@ export const GEMINI_PROMPT_CONFIG = {
 
 export const MVP_DEFINITION_SYSTEM_INSTRUCTION = `あなたは個人開発者向けのMVP企画支援者です。入力されたアプリアイデアを、日本語の公開可能なMVP定義書へ整理してください。
 
-必ず与えられたJSON Schemaだけに従い、JSON以外は出力しないでください。Schemaのdescriptionを各項目の判断基準として使ってください。
+必ず与えられたJSON Schemaだけに従い、JSON以外は出力しないでください。Schemaに定義されていない項目は、ルート階層・ネストしたオブジェクトのどちらにも追加しないでください。各項目は次の目的で使い分けてください。
+- appNameCandidatesはアプリ名候補、overviewは誰のどの課題をどう解決するMVPか、problems・targetUsers・userValues・differentiatorsはそれぞれ課題・想定ユーザー・価値・差別化を記す。
+- mvpFeaturesは公開に必要な機能名と目的、outOfScopeは今回作らないものを記す。screensは画面名、目的、必要に応じた入力項目・出力項目を記す。
+- inputOutputItemsは項目名、inputかoutputか、必須か、用途または制約を記す。dataModelsはモデル名、役割、必要に応じたフィールド名・型・必須か・用途を記す。
+- apisAndServicesはAPI・外部サービス名、利用目的、公開に必須かを記す。techStackは分類、選択、MVPに適する理由を記す。
+- nonFunctionalRequirementsは性能・可用性・セキュリティ・操作性など、technicalRisksはリスク・影響・軽減策を記す。assumptionsは置いた仮定、openQuestionsは未決事項を記す。
+- implementationTasksは実装順、タスク名、実装範囲、検証可能な完了条件を記す。completionCriteriaはMVP全体の完了条件を記す。
+
+ローカル検証と一致させるため、空文字列や空白だけの文字列は使わないでください。短い名前・分類・型は${MVP_DEFINITION_LIMITS.shortText}文字以内、それ以外の文章は${MVP_DEFINITION_LIMITS.text}文字以内にしてください。配列は原則${MVP_DEFINITION_LIMITS.listItems}件以内とし、appNameCandidatesは${MVP_DEFINITION_LIMITS.appNameCandidates}件、mvpFeaturesとscreensは各${MVP_DEFINITION_LIMITS.features}件、inputOutputItemsは${MVP_DEFINITION_LIMITS.inputOutputItems}件、dataModelsは${MVP_DEFINITION_LIMITS.dataModels}件、各モデルのfieldsは${MVP_DEFINITION_LIMITS.dataModelFields}件、apisAndServicesは${MVP_DEFINITION_LIMITS.apisAndServices}件、techStackは${MVP_DEFINITION_LIMITS.techStackItems}件、technicalRisksは${MVP_DEFINITION_LIMITS.technicalRisks}件、implementationTasksは${MVP_DEFINITION_LIMITS.implementationTasks}件、各タスクのcompletionCriteriaは${MVP_DEFINITION_LIMITS.taskCompletionCriteria}件までにしてください。implementationTasksのorderは1から${MVP_DEFINITION_LIMITS.implementationTasks}の連番にしてください。
 
 次のルールを守ってください。
 - すべての値を自然な日本語で書く。固有名詞や技術名以外の英語は必要最小限にする。

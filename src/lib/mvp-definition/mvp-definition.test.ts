@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   MVP_DEFINITION_LIMITS,
+  geminiMvpDefinitionSchema,
   isMvpDefinition,
   mvpDefinitionSchema,
   parseMvpDefinition,
@@ -152,6 +153,44 @@ describe("mvpDefinitionSchema", () => {
     expect(Object.keys(mvpDefinitionSchema.properties)).toEqual(
       mvpDefinitionSchema.required,
     );
+  });
+
+  it("keeps only structural keywords in the Gemini response schema", () => {
+    const serializedSchema = JSON.stringify(geminiMvpDefinitionSchema);
+
+    expect(serializedSchema).not.toContain('"$schema"');
+    expect(serializedSchema).not.toContain('"minLength"');
+    expect(serializedSchema).not.toContain('"maxLength"');
+    expect(serializedSchema).not.toContain('"pattern"');
+    expect(serializedSchema).not.toContain('"additionalProperties"');
+    expect(serializedSchema).not.toContain('"maxItems"');
+    expect(serializedSchema).not.toContain('"minimum"');
+    expect(serializedSchema).not.toContain('"maximum"');
+    expect(geminiMvpDefinitionSchema).toMatchObject({
+      type: "object",
+      required: mvpDefinitionSchema.required,
+      properties: {
+        overview: { type: "string" },
+        implementationTasks: { type: "array" },
+      },
+    });
+    const geminiSchema = geminiMvpDefinitionSchema as {
+      description?: unknown;
+      properties: {
+        overview: { description?: unknown };
+        mvpFeatures: {
+          items: { additionalProperties?: unknown; properties: unknown };
+        };
+      };
+    };
+    expect(geminiSchema.description).toBeUndefined();
+    expect(geminiSchema.properties.overview.description).toBeUndefined();
+    expect(geminiSchema.properties.mvpFeatures.items.additionalProperties).toBeUndefined();
+    expect(mvpDefinitionSchema.properties.overview).toMatchObject({
+      minLength: 1,
+      maxLength: MVP_DEFINITION_LIMITS.text,
+      pattern: "\\S",
+    });
   });
 
   it("accepts complete and minimal definitions", () => {

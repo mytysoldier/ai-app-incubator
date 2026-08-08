@@ -5,7 +5,7 @@ import {
   createMvpDefinitionUserPrompt,
 } from "@/lib/gemini-prompt";
 import {
-  mvpDefinitionSchema,
+  geminiMvpDefinitionSchema,
   parseMvpDefinitionJson,
   type MvpDefinition,
 } from "@/lib/mvp-definition";
@@ -89,7 +89,7 @@ async function requestGeminiDefinition(
           abortSignal: controller.signal,
           systemInstruction: MVP_DEFINITION_SYSTEM_INSTRUCTION,
           responseMimeType: "application/json",
-          responseJsonSchema: mvpDefinitionSchema,
+          responseJsonSchema: geminiMvpDefinitionSchema,
           maxOutputTokens: GEMINI_PROMPT_CONFIG.maxOutputTokens,
           thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         },

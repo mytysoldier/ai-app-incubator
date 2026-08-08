@@ -11,7 +11,7 @@ import {
   type GeminiTokenUsage,
 } from "./index";
 import { representativePromptCases } from "./evaluation-cases";
-import { mvpDefinitionSchema } from "../mvp-definition/schema";
+import { geminiMvpDefinitionSchema } from "../mvp-definition/schema";
 
 type SafeCaseResult = {
   id: string;
@@ -103,7 +103,7 @@ describe("Gemini prompt regression evaluation (manual only)", () => {
           config: {
             systemInstruction: MVP_DEFINITION_SYSTEM_INSTRUCTION,
             responseMimeType: "application/json",
-            responseJsonSchema: mvpDefinitionSchema,
+            responseJsonSchema: geminiMvpDefinitionSchema,
             maxOutputTokens: GEMINI_PROMPT_CONFIG.maxOutputTokens,
             thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
           },

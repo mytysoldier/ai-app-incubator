@@ -6,7 +6,7 @@
 - Thinking level: `minimal`
 - 入力トークン目標: 最大 6,000
 - 出力トークン上限: 3,000（thinkingを含む）
-- Structured Output: `src/lib/mvp-definition/schema.ts` の `mvpDefinitionSchema`
+- Structured Output: `src/lib/mvp-definition/schema.ts` の `geminiMvpDefinitionSchema`（Geminiへ送る互換スキーマ）
 
 System Instructionとユーザープロンプトの組み立ては `src/lib/gemini-prompt/index.ts` で管理する。日本語固定、重複回避、1〜2週間で公開できるMVPへの絞り込み、仮定・未決事項の分離をSystem Instructionで明示している。
 
@@ -25,7 +25,7 @@ System Instructionとユーザープロンプトの組み立ては `src/lib/gemi
 ### 実モデル評価の手順
 
 1. AI Studioでモデルを `gemini-3.1-flash-lite`、Thinkingを `minimal` に設定する。
-2. System Instructionへ `MVP_DEFINITION_SYSTEM_INSTRUCTION` を貼り、Structured Outputへ `mvpDefinitionSchema` を設定する。
+2. System Instructionへ `MVP_DEFINITION_SYSTEM_INSTRUCTION` を貼り、Structured Outputへ `geminiMvpDefinitionSchema` を設定する。生成結果はローカルの厳密な `mvpDefinitionSchema` で検証する。
 3. `representativePromptCases` の10件を1件ずつ実行する。
 4. 各JSONを `evaluateMvpDefinition` で評価し、失敗した基準と重複・過剰機能・曖昧な表現を記録する。
 5. 不足があればSystem Instructionを優先して直し、同じ10件を再評価する。
