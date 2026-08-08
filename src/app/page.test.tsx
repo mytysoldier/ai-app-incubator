@@ -32,6 +32,22 @@ describe("Home", () => {
     ).toBeDefined();
   });
 
+  it("links to GitHub Issues for feedback in a new tab with a safety notice", () => {
+    render(<Home />);
+
+    const feedbackLink = screen.getByRole("link", { name: "ご意見・不具合報告を送る" });
+    expect(feedbackLink.getAttribute("href")).toBe(
+      "https://github.com/mytysoldier/ai-app-incubator/issues/new",
+    );
+    expect(feedbackLink.getAttribute("target")).toBe("_blank");
+    expect(feedbackLink.getAttribute("rel")).toBe("noreferrer");
+    expect(
+      screen.getByText(
+        "APIキー、個人情報、生成結果に含まれる機微情報は投稿しないでください。",
+      ),
+    ).toBeDefined();
+  });
+
   it("shows an associated error for an empty idea", () => {
     render(<Home />);
 

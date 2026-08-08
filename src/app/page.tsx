@@ -88,6 +88,26 @@ function getErrorCode(value: unknown): GenerationErrorCode | undefined {
     : undefined;
 }
 
+function FeedbackLink() {
+  return (
+    <aside className="feedback-notice" aria-label="ご意見・不具合報告">
+      <p>
+        不具合報告・改善要望・お問い合わせは、GitHub Issuesで受け付けています。
+      </p>
+      <a
+        href="https://github.com/mytysoldier/ai-app-incubator/issues/new"
+        rel="noreferrer"
+        target="_blank"
+      >
+        ご意見・不具合報告を送る
+      </a>
+      <p className="feedback-notice-caution">
+        APIキー、個人情報、生成結果に含まれる機微情報は投稿しないでください。
+      </p>
+    </aside>
+  );
+}
+
 export default function Home() {
   const [idea, setIdea] = useState("");
   const [constraints, setConstraints] = useState("");
@@ -202,6 +222,7 @@ export default function Home() {
       <main className="page-shell">
         <div className="content">
           <MvpDefinitionResult definition={definition} onRegenerate={handleRegenerate} />
+          <FeedbackLink />
         </div>
       </main>
     );
@@ -303,6 +324,7 @@ export default function Home() {
             {isSubmitting ? "生成しています…" : "MVPの定義書を生成する"}
           </button>
         </form>
+        <FeedbackLink />
       </div>
     </main>
   );
