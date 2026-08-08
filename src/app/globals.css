@@ -220,6 +220,35 @@ textarea[aria-invalid="true"] {
   line-height: 1.5;
 }
 
+.feedback-notice {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: #343440;
+  background: var(--surface);
+  box-shadow: 0 16px 45px rgb(54 48 105 / 8%);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.feedback-notice a {
+  width: fit-content;
+  color: var(--accent-dark);
+  font-weight: 750;
+}
+
+.feedback-notice a:focus-visible {
+  outline: 3px solid rgb(91 76 196 / 35%);
+  outline-offset: 2px;
+}
+
+.feedback-notice-caution {
+  color: var(--muted);
+}
+
 .submit-button {
   min-height: 52px;
   border: 0;
@@ -401,6 +430,10 @@ textarea[aria-invalid="true"] {
 
   .mvp-definition-result {
     border-radius: 16px;
+  }
+
+  .feedback-notice {
+    padding: 20px;
   }
 
   .result-heading {
