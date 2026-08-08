@@ -46,6 +46,9 @@ describe("Gemini MVP definition prompt", () => {
     expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
       `implementationTasksのorderは1から${MVP_DEFINITION_LIMITS.implementationTasks}の連番`,
     );
+    expect(MVP_DEFINITION_SYSTEM_INSTRUCTION).toContain(
+      "空文字列や空白だけの文字列は使わない",
+    );
   });
 
   it("creates prompts for at least ten representative ideas", () => {
